@@ -1,3 +1,4 @@
+
 export const COURSES = [
   {
     id: 1,
@@ -64,8 +65,10 @@ export const TUTORS = [
     experience: 5,
     rating: 4.9,
     accent: 'American',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop',
     dataAiHint: 'woman smiling',
+    bio: 'Jane is a certified ESL instructor with a passion for making learning fun and accessible. She specializes in helping beginners build a strong foundation and gain confidence in their speaking abilities.',
+    specialties: ['Beginner English', 'Conversational Practice', 'Pronunciation', 'Confidence Building'],
   },
   {
     id: 2,
@@ -74,8 +77,10 @@ export const TUTORS = [
     experience: 8,
     rating: 4.8,
     accent: 'British',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
     dataAiHint: 'man portrait',
+    bio: 'John has extensive experience in corporate training and business English. He excels at helping professionals refine their language skills for the global workplace, focusing on clarity, precision, and cultural nuance.',
+    specialties: ['Business English', 'Advanced Grammar', 'Presentation Skills', 'Negotiation'],
   },
 ];
 
@@ -97,7 +102,7 @@ export const TESTIMONIALS = [
   },
   {
     name: 'Fatima Al-Sayed',
-    quote: 'Thanks to English Excellence, I passed my IELTS with a great score. The prep course was thorough and very helpful.',
+    quote: 'Thanks to English Excellence, I passed my exams with a great score. The prep course was thorough and very helpful.',
     avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=100&auto=format&fit=crop',
   },
 ];
