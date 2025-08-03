@@ -10,6 +10,8 @@ import NavItem from "./NavItem";
 import { useAuth } from "../AuthProvider";
 import { auth } from "@/lib/firebase";
 
+const ADMIN_EMAIL = 'admin@example.com';
+
 export default function Header() {
   const [isSheetOpen, setSheetOpen] = useState(false);
   const { user } = useAuth();
@@ -25,6 +27,8 @@ export default function Header() {
     { href: "/tutors", label: "Tutors" },
     { href: "/contact", label: "Contact" },
   ];
+
+  const isAdmin = user && user.email === ADMIN_EMAIL;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -56,12 +60,15 @@ export default function Header() {
             </>
           )}
           
-          <Link href="/admin/login">
-            <Button variant="outline" size="icon" className="hidden md:flex">
-              <UserCog className="h-5 w-5" />
-              <span className="sr-only">Admin Login</span>
-            </Button>
-          </Link>
+          {isAdmin && (
+            <Link href="/admin/inquiries">
+              <Button variant="outline" size="icon" className="hidden md:flex">
+                <UserCog className="h-5 w-5" />
+                <span className="sr-only">Admin Dashboard</span>
+              </Button>
+            </Link>
+          )}
+
 
           <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild className="md:hidden">
@@ -72,7 +79,7 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-6 p-6">
-                <Link href="/" className="flex items-center gap-2 mb-4">
+                <Link href="/" className="flex items-center gap-2 mb-4" onClick={() => setSheetOpen(false)}>
                     <Globe className="h-7 w-7 text-primary" />
                     <span className="font-headline text-2xl font-bold">English Excellence</span>
                 </Link>
@@ -87,13 +94,15 @@ export default function Header() {
                         {link.label}
                     </Link>
                 ))}
-                 <Link
-                    href="/admin/login"
-                    onClick={() => setSheetOpen(false)}
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors"
-                >
-                    Admin
-                </Link>
+                 {isAdmin && (
+                   <Link
+                      href="/admin/inquiries"
+                      onClick={() => setSheetOpen(false)}
+                      className="text-lg font-medium text-foreground hover:text-primary transition-colors"
+                  >
+                      Admin
+                  </Link>
+                 )}
                 </nav>
                 <div className="flex flex-col gap-3 mt-auto">
                     {user ? (
