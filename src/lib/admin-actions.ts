@@ -5,44 +5,39 @@ import { initializeApp, getApps, getApp, App, cert } from "firebase-admin/app";
 import { getAuth as getAdminAuth, UserRecord } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-// This is the recommended way to initialize the Firebase Admin SDK.
-// It handles both local development (using a service account file) and
-// deployed environments (like App Hosting) where credentials are automatically discovered.
 const adminApp = (): App => {
     if (getApps().length > 0) {
         return getApp();
     }
     
-    // Check for GOOGLE_APPLICATION_CREDENTIALS for local dev
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-      console.log('Initializing with GOOGLE_APPLICATION_CREDENTIALS');
-      return initializeApp({
-        credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
-      });
+      try {
+        const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+         return initializeApp({
+            credential: cert(serviceAccount),
+        });
+      } catch (e) {
+         console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS. Please ensure it's a valid JSON string or a path to a file.", e);
+         // Fallback to default credentials if parsing fails
+      }
     }
 
-    // Check for explicit SERVICE_ACCOUNT env var
-    const serviceAccountString = process.env.SERVICE_ACCOUNT;
-    if (serviceAccountString) {
+    if (process.env.SERVICE_ACCOUNT) {
         try {
-            console.log('Initializing with SERVICE_ACCOUNT env var.');
-            const serviceAccount = JSON.parse(serviceAccountString);
+            const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT);
             return initializeApp({
                 credential: cert(serviceAccount),
             });
         } catch (e) {
             console.error("Failed to parse SERVICE_ACCOUNT. Please ensure it's a valid JSON string.", e);
-            throw new Error("Invalid service account credentials.");
         }
     }
     
-    console.log('Initializing with Application Default Credentials');
-    // Fallback for deployed environments
     return initializeApp();
 };
 
 
-export async function listAllAuthUsers(): Promise<{uid: string, email: string | undefined}[]> {
+export async function listAllAuthUsers(): Promise<{ users: {uid: string, email: string | undefined}[]; error?: string }> {
   try {
     const auth = getAdminAuth(adminApp());
     const userRecords: UserRecord[] = [];
@@ -54,16 +49,22 @@ export async function listAllAuthUsers(): Promise<{uid: string, email: string | 
       pageToken = listUsersResult.pageToken;
     } while (pageToken);
     
-    return userRecords.map(user => ({
+    const users = userRecords.map(user => ({
         uid: user.uid,
         email: user.email
     }));
 
-  } catch (error) {
+    return { users };
+
+  } catch (error: any) {
     console.error('Error listing users:', error);
-    // Re-throw the error with a more specific message that includes the likely solution.
-    // This helps the front-end identify the issue and display a helpful message.
-    throw new Error("Could not list users. Ensure the service account has 'Firebase Authentication Admin' role.");
+    const errorMessage = "Could not list users. Ensure the service account has 'Firebase Authentication Admin' role.";
+    // Check for specific permission error codes
+    if (error.code === 'permission-denied' || error.message.includes('insufficient permissions')) {
+        return { users: [], error: errorMessage };
+    }
+    // Re-throw other types of errors
+    throw new Error(error.message || "An unknown error occurred while listing users.");
   }
 }
 

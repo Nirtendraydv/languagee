@@ -35,15 +35,21 @@ type UserWithCourses = User & {
 export default function UsersPage() {
   const [users, setUsers] = useState<UserWithCourses[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [permissionError, setPermissionError] = useState(false);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchData = async () => {
       setIsLoading(true);
-      setPermissionError(false);
+      setPermissionError(null);
       try {
           // 1. Fetch all users from Firebase Auth
-          const authUsers = await listAllAuthUsers();
+          const { users: authUsers, error: authError } = await listAllAuthUsers();
+
+          if (authError) {
+            setPermissionError(authError);
+            setIsLoading(false);
+            return;
+          }
 
           // If no users in Auth and placeholders exist, populate Firestore with placeholders
           if (authUsers.length === 0 && USERS_PLACEHOLDER.length > 0) {
@@ -63,6 +69,7 @@ export default function UsersPage() {
 
           // 4. Merge Auth users with Firestore data
           const usersWithCourses = authUsers.map(authUser => {
+              if (!authUser) return null;
               const firestoreUser = firestoreUsers.find(u => u.uid === authUser.uid);
               const enrolledCourses = courses.filter(course => course.enrolledUserIds?.includes(authUser.uid));
               return { 
@@ -70,17 +77,13 @@ export default function UsersPage() {
                   createdAt: firestoreUser?.createdAt,
                   enrolledCourses 
               };
-          });
+          }).filter(Boolean) as UserWithCourses[];
           
           setUsers(usersWithCourses);
 
       } catch (error: any) {
           console.error("Error fetching data:", error);
-          if (error.message.includes("insufficient permissions") || error.message.includes("Firebase Authentication Admin")) {
-            setPermissionError(true);
-          } else {
-            toast({ variant: "destructive", title: "Error", description: "Failed to fetch user or course data." });
-          }
+          toast({ variant: "destructive", title: "Error", description: "Failed to fetch user or course data." });
       } finally {
           setIsLoading(false);
       }
@@ -98,7 +101,7 @@ export default function UsersPage() {
     });
 
     return () => unsubscribe();
-  }, [permissionError]);
+  }, []);
 
   return (
     <div className="p-8">
@@ -109,6 +112,18 @@ export default function UsersPage() {
           Refresh
         </Button>
       </div>
+       {permissionError && (
+            <Alert variant="destructive" className="mb-8">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Permission Error</AlertTitle>
+              <AlertDescription>
+                <p>{permissionError}</p>
+                <p className="mt-2">
+                This is a permissions issue in your Google Cloud project, not a bug in the app. Please follow the steps in the `INSTRUCTIONS.md` file in your project root to grant the required IAM role to your service account.
+                </p>
+              </AlertDescription>
+            </Alert>
+        )}
       <Card>
         <CardHeader>
           <CardTitle>Registered Users</CardTitle>
@@ -119,15 +134,10 @@ export default function UsersPage() {
             <div className="flex justify-center items-center h-40">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
-          ) : permissionError ? (
-            <Alert variant="destructive" className="mt-4">
-              <Terminal className="h-4 w-4" />
-              <AlertTitle>Permission Error</AlertTitle>
-              <AlertDescription>
-                The service account used by the application does not have the required permissions to list users from Firebase Authentication. 
-                Please follow the steps in the `INSTRUCTIONS.md` file in your project root to grant the **Firebase Authentication Admin** role.
-              </AlertDescription>
-            </Alert>
+          ) : users.length === 0 && !permissionError ? (
+             <div className="text-center text-muted-foreground p-8">
+              No users have signed up yet.
+            </div>
           ) : (
             <Table>
               <TableHeader>
