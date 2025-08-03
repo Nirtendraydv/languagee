@@ -1,0 +1,146 @@
+"use client";
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { MessageSquare, Send, Bot, User, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { aiTutorAssistant, AiTutorAssistantOutput } from '@/ai/flows/ai-tutor-assistant';
+import { TUTOR_FAQ } from '@/lib/constants';
+
+type Message = {
+  id: number;
+  role: 'user' | 'bot';
+  content: string;
+  emailDraft?: string;
+};
+
+export function AiTutorSidebar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = { id: Date.now(), role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const result: AiTutorAssistantOutput = await aiTutorAssistant({
+        question: input,
+        faq: TUTOR_FAQ,
+      });
+
+      const botMessage: Message = {
+        id: Date.now() + 1,
+        role: 'bot',
+        content: result.answer,
+        emailDraft: result.emailDraft,
+      };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: Date.now() + 1,
+        role: 'bot',
+        content: "Sorry, I'm having trouble connecting right now. Please try again later.",
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      console.error('AI Tutor Assistant Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button
+            className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 animate-bounce"
+            size="icon"
+          >
+            <MessageSquare className="h-8 w-8" />
+            <span className="sr-only">Ask AI Tutor</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-full sm:w-[540px] flex flex-col p-0">
+          <SheetHeader className="p-6 pb-2">
+            <SheetTitle className="font-headline text-2xl flex items-center gap-2">
+              <Bot className="text-primary" /> AI Tutor Assistant
+            </SheetTitle>
+            <SheetDescription>
+              Ask a question about learning, classes, or our platform.
+            </SheetDescription>
+          </SheetHeader>
+          <ScrollArea className="flex-grow p-6">
+            <div className="space-y-6">
+              {messages.length === 0 && (
+                 <div className="text-center text-muted-foreground p-8">
+                    <p>Welcome! How can I help you today?</p>
+                 </div>
+              )}
+              {messages.map(message => (
+                <div key={message.id} className={cn("flex items-start gap-3", message.role === 'user' ? 'justify-end' : '')}>
+                  {message.role === 'bot' && (
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="bg-primary text-primary-foreground"><Bot size={20} /></AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className={cn("max-w-[75%] rounded-lg p-3", message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    {message.emailDraft && (
+                        <div className="mt-4 border-t pt-2">
+                            <p className="text-xs font-semibold mb-2">Here's a draft email to your tutor:</p>
+                            <Textarea readOnly value={message.emailDraft} className="text-xs h-40 bg-background" />
+                        </div>
+                    )}
+                  </div>
+                   {message.role === 'user' && (
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback><User size={20} /></AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex items-start gap-3">
+                   <Avatar className="w-8 h-8">
+                      <AvatarFallback className="bg-primary text-primary-foreground"><Bot size={20} /></AvatarFallback>
+                    </Avatar>
+                    <div className="bg-secondary rounded-lg p-3 flex items-center space-x-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span className="text-sm text-muted-foreground">Thinking...</span>
+                    </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          <SheetFooter className="p-4 border-t bg-background">
+            <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
+              <Input
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Type your question..."
+                className="flex-grow"
+                disabled={isLoading}
+              />
+              <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                <span className="sr-only">Send</span>
+              </Button>
+            </form>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
