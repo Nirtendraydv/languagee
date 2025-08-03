@@ -1,16 +1,55 @@
 
+"use client";
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { TUTORS } from '@/lib/constants';
 import TutorCard from '@/components/TutorCard';
-import { Award, Heart, Users } from 'lucide-react';
+import { Award, Heart, Users, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+
+type Tutor = {
+  id: string;
+  name: string;
+  country: string;
+  experience: number;
+  rating: number;
+  accent: string;
+  avatar: string;
+  dataAiHint: string;
+  bio: string;
+  specialties: string[];
+};
+
 
 export default function AboutPage() {
+  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTutors = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, "tutors"));
+        const tutorsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tutor));
+        setTutors(tutorsList);
+      } catch (error) {
+        console.error("Error fetching tutors:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTutors();
+  }, []);
+
+
   return (
     <div className="bg-background gradient-bg">
       <header className="py-20 text-center container mx-auto">
-        <h1 className="text-5xl font-bold font-headline text-primary">About English Excellence</h1>
+        <h1 className="text-5xl font-bold font-headline text-primary">About LingoSphere</h1>
         <p className="text-muted-foreground mt-4 text-lg max-w-3xl mx-auto">
           Founded by two passionate educators, our mission is to provide personalized and effective English tutoring for students worldwide.
         </p>
@@ -31,7 +70,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-4xl font-headline font-bold mb-4">Our Story</h2>
               <p className="text-lg text-muted-foreground mb-8">
-                English Excellence was born from a shared dream between us, Jane and John. As experienced English tutors, we saw a need for a more personal, engaging, and flexible way for students to learn. We believe that with the right guidance and a supportive environment, anyone can achieve fluency and confidence in English. We combined our expertise to create this platform, focusing on interactive methods and customized lesson plans to help you succeed.
+                LingoSphere was born from a shared dream between us, Jane and John. As experienced English tutors, we saw a need for a more personal, engaging, and flexible way for students to learn. We believe that with the right guidance and a supportive environment, anyone can achieve fluency and confidence in English. We combined our expertise to create this platform, focusing on interactive methods and customized lesson plans to help you succeed.
               </p>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
@@ -70,16 +109,23 @@ export default function AboutPage() {
       <section className="py-20 container mx-auto">
         <h2 className="text-4xl font-headline font-bold text-center mb-12">Meet Our Founders & Tutors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
-            {TUTORS.map(tutor => (
-              <TutorCard key={tutor.id} tutor={tutor} />
-            ))}
+            {isLoading ? (
+              <>
+                <TutorCardSkeleton />
+                <TutorCardSkeleton />
+              </>
+            ) : (
+              tutors.map(tutor => (
+                <TutorCard key={tutor.id} tutor={tutor} />
+              ))
+            )}
         </div>
       </section>
 
       <section className="w-full py-20 bg-primary text-center text-white">
         <div className="container mx-auto">
           <h2 className="text-4xl font-headline font-bold mb-4">Ready to Start Your Journey?</h2>
-          <p className="text-lg mb-8">Join us and unlock your potential with English Excellence.</p>
+          <p className="text-lg mb-8">Join us and unlock your potential with LingoSphere.</p>
           <Link href="/courses">
             <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90 rounded-full text-lg px-10 py-6">
               Explore Courses
@@ -90,3 +136,20 @@ export default function AboutPage() {
     </div>
   );
 }
+
+const TutorCardSkeleton = () => (
+    <div className="flex flex-col h-full bg-card/80 backdrop-blur-sm border-2 border-primary/10 rounded-xl overflow-hidden p-6 space-y-4">
+        <div className="flex flex-col items-center">
+            <Skeleton className="w-32 h-32 rounded-full mb-4" />
+            <Skeleton className="h-8 w-1/2 mb-2" />
+            <Skeleton className="h-4 w-1/3" />
+        </div>
+         <Skeleton className="h-20 w-full" />
+         <div className="space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-1/2" />
+        </div>
+        <Skeleton className="h-12 w-full rounded-full" />
+    </div>
+);
