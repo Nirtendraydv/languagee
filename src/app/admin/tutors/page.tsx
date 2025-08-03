@@ -30,7 +30,7 @@ type Tutor = {
   specialties: string[];
 };
 
-const defaultTutor: Partial<Tutor> = {
+const defaultTutor: Omit<Tutor, 'id'> = {
     name: '',
     country: '',
     experience: 0,
@@ -83,20 +83,26 @@ export default function AdminTutorsPage() {
 
     try {
       const tutorDataToSave = {
-        ...currentTutor,
+        name: currentTutor.name || '',
+        country: currentTutor.country || '',
         experience: Number(currentTutor.experience) || 0,
         rating: Number(currentTutor.rating) || 0,
-        specialties: Array.isArray(currentTutor.specialties) ? currentTutor.specialties : (currentTutor.specialties as string || '').split(',').map(s => s.trim()).filter(Boolean)
+        accent: currentTutor.accent || '',
+        avatar: currentTutor.avatar || 'https://placehold.co/150x150.png',
+        dataAiHint: currentTutor.dataAiHint || 'person portrait',
+        bio: currentTutor.bio || '',
+        specialties: Array.isArray(currentTutor.specialties) 
+            ? currentTutor.specialties 
+            : (currentTutor.specialties as string || '').split(',').map(s => s.trim()).filter(Boolean)
       };
+
 
       if (currentTutor.id) {
         const tutorRef = doc(db, "tutors", currentTutor.id);
-        const { id, ...data } = tutorDataToSave;
-        await updateDoc(tutorRef, data);
+        await updateDoc(tutorRef, tutorDataToSave);
         toast({ title: "Success", description: "Tutor updated successfully." });
       } else {
-        const { id, ...data } = tutorDataToSave;
-        await addDoc(collection(db, "tutors"), data);
+        await addDoc(collection(db, "tutors"), tutorDataToSave);
         toast({ title: "Success", description: "Tutor added successfully." });
       }
       await fetchTutors();
@@ -113,13 +119,13 @@ export default function AdminTutorsPage() {
     try {
       await deleteDoc(doc(db, "tutors", tutorId));
       toast({ title: "Success", description: "Tutor deleted successfully." });
-      await fetchTutors();
+      setTutors(prev => prev.filter(t => t.id !== tutorId));
     } catch (error) {
       console.error("Error deleting tutor:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to delete tutor." });
     }
   };
-
+  
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setCurrentTutor(prev => prev ? { ...prev, [name]: value } : null);
@@ -130,6 +136,12 @@ export default function AdminTutorsPage() {
     setIsDialogOpen(true);
   }
 
+  const openEditTutorDialog = (tutor: Tutor) => {
+    setCurrentTutor(tutor);
+    setIsDialogOpen(true);
+  }
+
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
@@ -139,7 +151,10 @@ export default function AdminTutorsPage() {
               <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+                setIsDialogOpen(isOpen);
+                if (!isOpen) setCurrentTutor(null);
+            }}>
                 <DialogTrigger asChild>
                     <Button onClick={openNewTutorDialog}>
                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -169,11 +184,11 @@ export default function AdminTutorsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="experience">Experience (Years)</Label>
-                                <Input id="experience" name="experience" type="number" value={currentTutor.experience || ''} onChange={handleFormChange} required />
+                                <Input id="experience" name="experience" type="number" value={currentTutor.experience ?? ''} onChange={handleFormChange} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="rating">Rating</Label>
-                                <Input id="rating" name="rating" type="number" step="0.1" value={currentTutor.rating || ''} onChange={handleFormChange} required />
+                                <Input id="rating" name="rating" type="number" step="0.1" value={currentTutor.rating ?? ''} onChange={handleFormChange} required />
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -243,14 +258,11 @@ export default function AdminTutorsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            setCurrentTutor(tutor);
-                            setIsDialogOpen(true);
-                          }}>
+                          <DropdownMenuItem onClick={() => openEditTutorDialog(tutor)}>
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Edit</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(tutor.id)}>
+                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(tutor.id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             <span>Delete</span>
                           </DropdownMenuItem>
