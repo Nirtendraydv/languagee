@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { BookOpen, Globe, UserCheck, Star, Zap, Award } from 'lucide-react';
+import { BookOpen, Globe, UserCheck, Star, Zap, Award, Calendar, Users, Target } from 'lucide-react';
 import FloatingLetters from '@/components/FloatingLetters';
 import { TESTIMONIALS } from '@/lib/constants';
 
@@ -28,7 +28,7 @@ export default function Home() {
             Learn English Anywhere <span className="animate-pulse">🌍</span>
           </h1>
           <p className="text-lg md:text-2xl mb-8 max-w-3xl mx-auto font-body">
-            Join English Excellence for an immersive, fun, and effective way to master English with the best tutors from around the world.
+            Join English Excellence for an immersive, fun, and effective way to master English with our dedicated tutors.
           </p>
           <Link href="/courses">
             <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full text-lg px-10 py-6 animate-glow">
@@ -80,6 +80,42 @@ export default function Home() {
         </div>
       </section>
       
+      <section id="features" className="w-full py-20 bg-background">
+        <div className="container mx-auto text-center">
+          <h2 className="text-4xl font-headline font-bold mb-12">A Learning Experience Like No Other</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="flex flex-col items-center p-4">
+              <div className="p-4 bg-primary/10 rounded-full mb-4">
+                <Target className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-xl font-headline font-semibold mb-2">Personalized Learning</h3>
+              <p className="text-muted-foreground text-center">Lessons tailored to your individual goals and learning style.</p>
+            </div>
+            <div className="flex flex-col items-center p-4">
+               <div className="p-4 bg-primary/10 rounded-full mb-4">
+                <Calendar className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-xl font-headline font-semibold mb-2">Flexible Scheduling</h3>
+              <p className="text-muted-foreground text-center">Book classes at times that are convenient for you.</p>
+            </div>
+            <div className="flex flex-col items-center p-4">
+               <div className="p-4 bg-primary/10 rounded-full mb-4">
+                <Zap className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-xl font-headline font-semibold mb-2">Interactive Classes</h3>
+              <p className="text-muted-foreground text-center">Engaging, live sessions that make learning effective and fun.</p>
+            </div>
+            <div className="flex flex-col items-center p-4">
+               <div className="p-4 bg-primary/10 rounded-full mb-4">
+                <Users className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-xl font-headline font-semibold mb-2">Dedicated Tutors</h3>
+              <p className="text-muted-foreground text-center">Learn from our two passionate and experienced English tutors.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="why-us" className="w-full py-20 bg-secondary/50">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -94,8 +130,8 @@ export default function Home() {
                     <Zap size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-headline font-semibold">Interactive 3D Learning</h3>
-                    <p className="text-muted-foreground">Our unique parallax and 3D animations make learning unforgettable.</p>
+                    <h3 className="text-xl font-headline font-semibold">Interactive Learning</h3>
+                    <p className="text-muted-foreground">Our unique approach and virtual tools make learning unforgettable.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -104,7 +140,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-xl font-headline font-semibold">Expert Tutors</h3>
-                    <p className="text-muted-foreground">Learn from certified, native-speaking tutors from around the globe.</p>
+                    <p className="text-muted-foreground">Learn from our certified, passionate, and dedicated tutors.</p>
                   </div>
                 </div>
                  <div className="flex items-start gap-4">

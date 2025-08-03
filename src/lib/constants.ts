@@ -33,17 +33,6 @@ export const COURSES = [
     dataAiHint: 'business meeting',
   },
   {
-    id: 4,
-    title: 'IELTS Preparation Masterclass',
-    level: 'Advanced',
-    ageGroup: 'Adults',
-    goal: 'IELTS',
-    description: 'Get the score you need with our comprehensive IELTS prep course covering all sections.',
-    badge: 'Bestseller',
-    image: 'https://placehold.co/600x400.png',
-    dataAiHint: 'test exam',
-  },
-  {
     id: 5,
     title: 'English for Kids: Fun & Games',
     level: 'Beginner',

@@ -92,7 +92,6 @@ export default function CoursesPage() {
                   <SelectItem value="Grammar">Grammar</SelectItem>
                   <SelectItem value="Conversation">Conversation</SelectItem>
                   <SelectItem value="Business English">Business English</SelectItem>
-                  <SelectItem value="IELTS">IELTS</SelectItem>
                 </SelectContent>
               </Select>
             </div>
