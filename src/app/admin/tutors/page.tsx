@@ -137,49 +137,51 @@ export default function AdminTutorsPage() {
                     <DialogHeader>
                         <DialogTitle>{currentTutor?.id ? 'Edit Tutor' : 'Add New Tutor'}</DialogTitle>
                     </DialogHeader>
+                    {currentTutor && (
                     <form onSubmit={handleSave} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Name</Label>
-                            <Input id="name" name="name" value={currentTutor?.name || ''} onChange={handleFormChange} required />
+                            <Input id="name" name="name" value={currentTutor.name || ''} onChange={handleFormChange} required />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="country">Country</Label>
-                                <Input id="country" name="country" value={currentTutor?.country || ''} onChange={handleFormChange} required />
+                                <Input id="country" name="country" value={currentTutor.country || ''} onChange={handleFormChange} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="accent">Accent</Label>
-                                <Input id="accent" name="accent" value={currentTutor?.accent || ''} onChange={handleFormChange} required />
+                                <Input id="accent" name="accent" value={currentTutor.accent || ''} onChange={handleFormChange} required />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="experience">Experience (Years)</Label>
-                                <Input id="experience" name="experience" type="number" value={currentTutor?.experience || ''} onChange={handleFormChange} required />
+                                <Input id="experience" name="experience" type="number" value={currentTutor.experience || ''} onChange={handleFormChange} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="rating">Rating</Label>
-                                <Input id="rating" name="rating" type="number" step="0.1" value={currentTutor?.rating || ''} onChange={handleFormChange} required />
+                                <Input id="rating" name="rating" type="number" step="0.1" value={currentTutor.rating || ''} onChange={handleFormChange} required />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="avatar">Avatar URL</Label>
-                            <Input id="avatar" name="avatar" value={currentTutor?.avatar || ''} onChange={handleFormChange} required />
+                            <Input id="avatar" name="avatar" value={currentTutor.avatar || ''} onChange={handleFormChange} required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="dataAiHint">AI Hint (for image generation)</Label>
-                            <Input id="dataAiHint" name="dataAiHint" value={currentTutor?.dataAiHint || ''} onChange={handleFormChange} required />
+                            <Input id="dataAiHint" name="dataAiHint" value={currentTutor.dataAiHint || ''} onChange={handleFormChange} required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="bio">Bio</Label>
-                            <Textarea id="bio" name="bio" value={currentTutor?.bio || ''} onChange={handleFormChange} required />
+                            <Textarea id="bio" name="bio" value={currentTutor.bio || ''} onChange={handleFormChange} required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="specialties">Specialties (comma-separated)</Label>
-                            <Input id="specialties" name="specialties" value={Array.isArray(currentTutor?.specialties) ? currentTutor.specialties.join(', ') : currentTutor?.specialties || ''} onChange={handleFormChange} required />
+                            <Input id="specialties" name="specialties" value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : currentTutor.specialties || ''} onChange={handleFormChange} required />
                         </div>
                         <Button type="submit">Save Tutor</Button>
                     </form>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

@@ -51,14 +51,14 @@ export default function InquiriesPage() {
 
   useEffect(() => {
     fetchInquiries();
-  }, [toast]);
+  }, []);
 
   const handleDelete = async (inquiryId: string) => {
     if (!window.confirm("Are you sure you want to delete this inquiry?")) return;
     try {
       await deleteDoc(doc(db, "inquiries", inquiryId));
       toast({ title: "Success", description: "Inquiry deleted successfully." });
-      fetchInquiries();
+      await fetchInquiries();
     } catch (error) {
       console.error("Error deleting inquiry:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to delete inquiry." });
