@@ -14,7 +14,7 @@ export default function Home() {
       <section className="w-full h-[90vh] md:h-screen relative overflow-hidden flex items-center justify-center text-center text-white bg-gradient-to-br from-primary via-blue-500 to-indigo-600">
         <div className="absolute inset-0">
           <Image
-            src="https://placehold.co/1920x1080.png"
+            src="https://images.unsplash.com/photo-1520038410233-7141be7e6f97?q=80&w=1920&auto=format&fit=crop"
             alt="World map background"
             data-ai-hint="world map"
             layout="fill"
@@ -156,7 +156,7 @@ export default function Home() {
             </div>
             <div>
               <Image 
-                src="https://placehold.co/600x600.png"
+                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=600&auto=format&fit=crop"
                 alt="Happy student learning online"
                 data-ai-hint="student online"
                 width={600}

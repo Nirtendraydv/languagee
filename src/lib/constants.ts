@@ -7,7 +7,7 @@ export const COURSES = [
     goal: 'Grammar',
     description: 'Master the fundamentals of English, from basic vocabulary to simple sentence structures.',
     badge: 'Free Trial',
-    image: 'https://placehold.co/600x400.png',
+    image: 'https://images.unsplash.com/photo-1543165794-803225536569?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'abc blocks',
   },
   {
@@ -18,7 +18,7 @@ export const COURSES = [
     goal: 'Conversation',
     description: 'Build confidence in speaking and listening with real-world conversation practice.',
     badge: 'Popular',
-    image: 'https://placehold.co/600x400.png',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'people talking',
   },
   {
@@ -29,7 +29,7 @@ export const COURSES = [
     goal: 'Business English',
     description: 'Perfect your professional communication for meetings, presentations, and negotiations.',
     badge: null,
-    image: 'https://placehold.co/600x400.png',
+    image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'business meeting',
   },
   {
@@ -40,7 +40,7 @@ export const COURSES = [
     goal: 'Conversation',
     description: 'An exciting, game-based curriculum to get young learners excited about English.',
     badge: 'New',
-    image: 'https://placehold.co/600x400.png',
+    image: 'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'kids playing',
   },
   {
@@ -51,7 +51,7 @@ export const COURSES = [
     goal: 'Grammar',
     description: 'Deep dive into complex grammar topics to write and speak with precision.',
     badge: null,
-    image: 'https://placehold.co/600x400.png',
+    image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'books library',
   },
 ];
@@ -64,7 +64,7 @@ export const TUTORS = [
     experience: 5,
     rating: 4.9,
     accent: 'American',
-    avatar: 'https://placehold.co/100x100.png',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
     dataAiHint: 'woman smiling',
   },
   {
@@ -74,7 +74,7 @@ export const TUTORS = [
     experience: 8,
     rating: 4.8,
     accent: 'British',
-    avatar: 'https://placehold.co/100x100.png',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop',
     dataAiHint: 'man portrait',
   },
 ];
@@ -83,22 +83,22 @@ export const TESTIMONIALS = [
   {
     name: 'Alex Johnson',
     quote: 'English Excellence completely transformed my confidence in speaking English. The tutors are fantastic and the lessons are so engaging!',
-    avatar: 'https://placehold.co/100x100.png',
+    avatar: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=100&auto=format&fit=crop',
   },
   {
     name: 'Maria Garcia',
     quote: 'I needed to improve my Business English for work, and this platform was a game-changer. I highly recommend it.',
-    avatar: 'https://placehold.co/100x100.png',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=100&auto=format&fit=crop',
   },
   {
     name: 'Kenji Tanaka',
     quote: 'The interactive lessons make learning fun, not a chore. I look forward to my classes every week.',
-    avatar: 'https://placehold.co/100x100.png',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
   },
   {
     name: 'Fatima Al-Sayed',
     quote: 'Thanks to English Excellence, I passed my IELTS with a great score. The prep course was thorough and very helpful.',
-    avatar: 'https://placehold.co/100x100.png',
+    avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=100&auto=format&fit=crop',
   },
 ];
 
