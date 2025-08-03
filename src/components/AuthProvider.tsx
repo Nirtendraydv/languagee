@@ -28,13 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ user, isLoading }}>
-      {isLoading ? (
-          <div className="w-full h-screen flex items-center justify-center">
-              <Skeleton className="w-1/2 h-1/2"/>
-          </div>
-      ) : (
-         children
-      )}
+      {children}
     </AuthContext.Provider>
   );
 };

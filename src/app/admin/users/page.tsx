@@ -45,6 +45,7 @@ export default function UsersPage() {
           if (authError) {
             setPermissionError(authError);
             setUsers([]);
+            setIsLoading(false);
             return;
           }
 
@@ -88,9 +89,7 @@ export default function UsersPage() {
 
 
   useEffect(() => {
-    if (!permissionError) {
-        fetchData();
-    }
+    fetchData();
 
     const unsubscribe = onSnapshot(collection(db, "courses"), () => {
         if (!permissionError) {

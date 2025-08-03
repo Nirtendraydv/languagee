@@ -126,7 +126,7 @@ export default function AdminSettingsPage() {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [toast]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
