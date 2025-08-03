@@ -13,11 +13,6 @@ service cloud.firestore {
       allow read, write: if request.auth.token.email == 'admin@example.com';
     }
     
-    // Logged-in users can create course requests for themselves
-    match /courseRequests/{requestId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-    }
-    
     // Publicly readable collections
     match /courses/{courseId} {
       allow read: if true;
@@ -34,6 +29,11 @@ service cloud.firestore {
     // Allow anyone to create inquiries (contact form)
     match /inquiries/{inquiryId} {
       allow create: if true;
+    }
+
+    // Allow authenticated users to create course requests
+    match /courseRequests/{requestId} {
+      allow create: if request.auth != null;
     }
 
   }
