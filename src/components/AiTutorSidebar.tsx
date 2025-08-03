@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MessageSquare, Send, Bot, User, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { aiTutorAssistant, AiTutorAssistantOutput } from '@/ai/flows/ai-tutor-assistant';
+import { TUTOR_FAQ, AI_TUTOR_COURSES_CONTEXT } from '@/lib/constants';
 
 type Message = {
   id: number;
@@ -16,11 +16,44 @@ type Message = {
   content: string;
 };
 
+const FAQ_PAIRS = TUTOR_FAQ.split('\n\n').map(faq => {
+    const [question, answer] = faq.split('\nA: ');
+    return { q: question.replace('Q: ', '').toLowerCase(), a: answer };
+});
+
+const COURSE_KEYWORDS = AI_TUTOR_COURSES_CONTEXT.map(c => c.title.toLowerCase());
+
 export function AiTutorSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const getBotResponse = (userInput: string): string => {
+      const lowerInput = userInput.toLowerCase();
+
+      // Check for FAQ matches
+      for (const faq of FAQ_PAIRS) {
+          if (lowerInput.includes(faq.q.split(' ')[0]) || lowerInput.includes(faq.q.split(' ')[1])) {
+              return faq.a;
+          }
+      }
+
+      // Check for course related keywords
+      if (lowerInput.includes('course') || lowerInput.includes('class')) {
+        return `We have several courses available! You can see all of them on our courses page. Some popular ones are ${COURSE_KEYWORDS.slice(0, 2).join(', ')}. Is there a specific one you'd like to know about?`;
+      }
+      
+      if(lowerInput.includes('tutor')) {
+        return 'We have two wonderful tutors, Jane and John. You can learn more about them on our tutors page.'
+      }
+
+      if (lowerInput.includes('hello') || lowerInput.includes('hi')) {
+        return 'Hello! How can I help you today? You can ask me about our courses, tutors, or pricing.'
+      }
+
+      return "I'm sorry, I'm not sure how to answer that. You can try asking about our 'courses' or 'tutors', or visit the contact page to send us a message directly.";
+  }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,31 +61,23 @@ export function AiTutorSidebar() {
 
     const userMessage: Message = { id: Date.now(), role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
-    try {
-      const result: AiTutorAssistantOutput = await aiTutorAssistant({
-        question: input,
-      });
+    // Simulate thinking
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const botMessage: Message = {
-        id: Date.now() + 1,
-        role: 'bot',
-        content: result.answer,
-      };
-      setMessages(prev => [...prev, botMessage]);
-    } catch (error) {
-      const errorMessage: Message = {
-        id: Date.now() + 1,
-        role: 'bot',
-        content: "Sorry, I'm having trouble connecting right now. Please try again later.",
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      console.error('AI Tutor Assistant Error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    const botResponse = getBotResponse(currentInput);
+    
+    const botMessage: Message = {
+      id: Date.now() + 1,
+      role: 'bot',
+      content: botResponse,
+    };
+    setMessages(prev => [...prev, botMessage]);
+    
+    setIsLoading(false);
   };
 
   return (
@@ -64,16 +89,16 @@ export function AiTutorSidebar() {
             size="icon"
           >
             <MessageSquare className="h-8 w-8" />
-            <span className="sr-only">Ask AI Tutor</span>
+            <span className="sr-only">Ask a Question</span>
           </Button>
         </SheetTrigger>
         <SheetContent className="w-full sm:w-[540px] flex flex-col p-0">
           <SheetHeader className="p-6 pb-2">
             <SheetTitle className="font-headline text-2xl flex items-center gap-2">
-              <Bot className="text-primary" /> AI Tutor Assistant
+              <Bot className="text-primary" /> Chat Assistant
             </SheetTitle>
             <SheetDescription>
-              Ask a question about our English courses.
+              Ask a question and I'll do my best to help!
             </SheetDescription>
           </SheetHeader>
           <ScrollArea className="flex-grow p-6">

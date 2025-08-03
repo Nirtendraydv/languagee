@@ -1,4 +1,5 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/ai-tutor-assistant.ts';
+// This file is used to register AI flows with Genkit.
+// Flows related to the AI tutor have been removed as per the user's request.
