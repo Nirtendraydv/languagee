@@ -1,7 +1,14 @@
+"use client";
+
 import Link from "next/link";
-import { Globe, Mail, Phone } from "lucide-react";
+import { Globe, Mail, Phone, Send } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
+import { useToast } from "@/hooks/use-toast";
 
 const TwitterIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -21,8 +28,31 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const newsletterFormSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email." }),
+});
 
 export default function Footer() {
+    const { toast } = useToast();
+    const form = useForm<z.infer<typeof newsletterFormSchema>>({
+        resolver: zodResolver(newsletterFormSchema),
+        defaultValues: {
+          email: "",
+        },
+    });
+
+    const onSubmit = async (values: z.infer<typeof newsletterFormSchema>) => {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log("Newsletter subscription:", values);
+        toast({
+          title: "Subscribed!",
+          description: "Thank you for joining our newsletter.",
+        });
+        form.reset();
+    };
+
+
     return (
         <footer className="bg-secondary/50">
             <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -42,26 +72,42 @@ export default function Footer() {
                     <div>
                         <h3 className="font-headline font-semibold">Platform</h3>
                         <ul className="mt-4 space-y-2">
+                            <li><Link href="/about" className="text-muted-foreground hover:text-primary">About Us</Link></li>
                             <li><Link href="/courses" className="text-muted-foreground hover:text-primary">Courses</Link></li>
                             <li><Link href="/tutors" className="text-muted-foreground hover:text-primary">Tutors</Link></li>
-                            <li><Link href="#" className="text-muted-foreground hover:text-primary">About Us</Link></li>
-                             <li><Link href="#" className="text-muted-foreground hover:text-primary">Testimonials</Link></li>
+                            <li><Link href="/#testimonials" className="text-muted-foreground hover:text-primary">Testimonials</Link></li>
                         </ul>
                     </div>
                     <div>
                         <h3 className="font-headline font-semibold">Contact Us</h3>
-                        <ul className="mt-4 space-y-2 text-muted-foreground">
-                           <li className="flex items-center gap-2"><Mail size={16} /> contact@englishexcellence.com</li>
+                         <ul className="mt-4 space-y-2 text-muted-foreground">
+                           <li className="flex items-center gap-2"><Mail size={16} /> <a href="mailto:contact@englishexcellence.com" className="hover:text-primary">contact@englishexcellence.com</a></li>
                            <li className="flex items-center gap-2"><Phone size={16} /> +1 (555) 123-4567</li>
+                           <li><Link href="/contact" className="text-muted-foreground hover:text-primary">Contact Form</Link></li>
                         </ul>
                     </div>
                      <div>
                         <h3 className="font-headline font-semibold">Newsletter</h3>
                         <p className="mt-4 text-muted-foreground">Stay updated with our latest courses and offers.</p>
-                        <form className="mt-4 flex gap-2">
-                            <Input placeholder="Your email" className="bg-background"/>
-                            <Button type="submit" className="bg-primary hover:bg-primary/90">Subscribe</Button>
-                        </form>
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 flex gap-2">
+                                <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem className="flex-grow">
+                                    <FormControl>
+                                        <Input placeholder="Your email" {...field} className="bg-background"/>
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                                <Button type="submit" disabled={form.formState.isSubmitting}>
+                                    {form.formState.isSubmitting ? "..." : <Send size={16} />}
+                                </Button>
+                            </form>
+                        </Form>
                     </div>
                 </div>
                 <div className="mt-12 border-t pt-8 text-center text-muted-foreground">

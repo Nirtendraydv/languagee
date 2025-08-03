@@ -4,15 +4,17 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, BookOpen, Users, Globe } from "lucide-react";
+import { Menu, Globe } from "lucide-react";
 import NavItem from "./NavItem";
 
 export default function Header() {
   const [isSheetOpen, setSheetOpen] = useState(false);
 
   const navLinks = [
+    { href: "/about", label: "About Us" },
     { href: "/courses", label: "Courses" },
     { href: "/tutors", label: "Tutors" },
+    { href: "/contact", label: "Contact" },
   ];
 
   return (
