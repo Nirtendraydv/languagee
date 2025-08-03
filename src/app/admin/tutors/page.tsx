@@ -30,6 +30,18 @@ type Tutor = {
   specialties: string[];
 };
 
+const defaultTutor: Partial<Tutor> = {
+    name: '',
+    country: '',
+    experience: 0,
+    rating: 5,
+    accent: '',
+    avatar: 'https://placehold.co/150x150.png',
+    dataAiHint: 'person portrait',
+    bio: '',
+    specialties: [],
+};
+
 export default function AdminTutorsPage() {
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +79,7 @@ export default function AdminTutorsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentTutor) return;
+    if (!currentTutor || !currentTutor.name) return;
 
     try {
       const tutorDataToSave = {
@@ -97,7 +109,7 @@ export default function AdminTutorsPage() {
   };
 
   const handleDelete = async (tutorId: string) => {
-    if (!window.confirm("Are you sure you want to delete this tutor?")) return;
+    if (!window.confirm("Are you sure you want to delete this tutor? This action cannot be undone.")) return;
     try {
       await deleteDoc(doc(db, "tutors", tutorId));
       toast({ title: "Success", description: "Tutor deleted successfully." });
@@ -113,6 +125,11 @@ export default function AdminTutorsPage() {
     setCurrentTutor(prev => prev ? { ...prev, [name]: value } : null);
   };
   
+  const openNewTutorDialog = () => {
+    setCurrentTutor(defaultTutor);
+    setIsDialogOpen(true);
+  }
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
@@ -124,11 +141,7 @@ export default function AdminTutorsPage() {
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button onClick={() => setCurrentTutor({
-                      avatar: 'https://placehold.co/150x150.png',
-                      dataAiHint: 'person portrait',
-                      specialties: []
-                    })}>
+                    <Button onClick={openNewTutorDialog}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Add New Tutor
                     </Button>
