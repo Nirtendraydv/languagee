@@ -3,38 +3,38 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Allow public read access to courses and tutors
+    // Default deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Admins have full access to everything
+    match /{path=**} {
+      allow read, write: if request.auth.token.email == 'admin@example.com';
+    }
+    
+    // Logged-in users can create course requests for themselves
+    match /courseRequests/{requestId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Publicly readable collections
     match /courses/{courseId} {
       allow read: if true;
-      allow write: if request.auth.token.email == 'admin@example.com';
     }
     
     match /tutors/{tutorId} {
       allow read: if true;
-      allow write: if request.auth.token.email == 'admin@example.com';
     }
 
-    // Allow anyone to create inquiries, but only admin to read/delete
+    match /settings/homepageConfig {
+       allow read: if true;
+    }
+
+    // Allow anyone to create inquiries (contact form)
     match /inquiries/{inquiryId} {
       allow create: if true;
-      allow read, update, delete: if request.auth.token.email == 'admin@example.com';
     }
 
-    // Allow authenticated users to create requests, only admin can manage them
-    match /courseRequests/{requestId} {
-      allow create: if request.auth != null;
-      allow read, update, delete: if request.auth.token.email == 'admin@example.com';
-    }
-
-    // Allow users to be created/read by admin, users can only see their own doc
-     match /users/{userId} {
-      allow read, write: if request.auth.token.email == 'admin@example.com';
-      allow read: if request.auth.uid == userId;
-    }
-
-    // Only admin can read/write settings
-    match /settings/{settingId} {
-      allow read, write: if request.auth.token.email == 'admin@example.com';
-    }
   }
 }
