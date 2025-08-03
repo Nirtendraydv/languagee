@@ -3,43 +3,52 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    function isAdmin() {
+      return request.auth.token.email == 'admin@example.com';
+    }
+
     // Default deny all
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Admins have full access to everything
+    // Admins have full access to everything, this is a fallback.
+    // More specific rules below will take precedence for their respective paths.
     match /{path=**} {
-      allow read, create, update, delete: if request.auth.token.email == 'admin@example.com';
+      allow read, write: if isAdmin();
     }
     
-    // Publicly readable collections
     match /courses/{courseId} {
       allow read: if true;
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin();
     }
     
     match /tutors/{tutorId} {
       allow read: if true;
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin();
     }
 
     match /settings/homepageConfig {
        allow read: if true;
+       allow write: if isAdmin();
     }
 
-    // Allow a user to read their own user document
-    match /users/{userId} {
-      allow read: if request.auth.uid == userId;
-    }
-
-    // Allow anyone to create inquiries
     match /inquiries/{inquiryId} {
       allow create: if true;
+      allow delete: if isAdmin();
     }
 
-    // Allow authenticated users to create and read their own course requests
     match /courseRequests/{requestId} {
-      allow read, create: if request.auth != null;
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow delete: if isAdmin();
     }
 
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+    }
   }
 }
