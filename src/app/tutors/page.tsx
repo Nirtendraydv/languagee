@@ -1,13 +1,48 @@
 
 "use client";
 
-import { TUTORS, TUTOR_FAQ } from '@/lib/constants';
+import { useState, useEffect } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import { TUTOR_FAQ, TUTORS_PLACEHOLDER } from '@/lib/constants';
 import TutorCard from '@/components/TutorCard';
-import { Award, Heart, Users, ChevronDown } from 'lucide-react';
+import { Award, Heart, Users } from 'lucide-react';
 import Image from 'next/image';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Skeleton } from '@/components/ui/skeleton';
+
+type Tutor = {
+  id: string;
+  name: string;
+  country: string;
+  experience: number;
+  rating: number;
+  accent: string;
+  avatar: string;
+  dataAiHint: string;
+  bio: string;
+  specialties: string[];
+};
 
 export default function TutorsPage() {
+  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTutors = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "tutors"));
+        const tutorsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tutor));
+        setTutors(tutorsList);
+      } catch (error) {
+        console.error("Error fetching tutors: ", error);
+        setTutors(TUTORS_PLACEHOLDER.map(tutor => ({...tutor, id: tutor.id.toString()})) as Tutor[]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTutors();
+  }, []);
 
   return (
     <div className="bg-background gradient-bg">
@@ -20,9 +55,16 @@ export default function TutorsPage() {
       
       <div className="container mx-auto py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            {TUTORS.map(tutor => (
-              <TutorCard key={tutor.id} tutor={tutor} />
-            ))}
+            {isLoading ? (
+              <>
+                <TutorCardSkeleton />
+                <TutorCardSkeleton />
+              </>
+            ) : (
+               tutors.map(tutor => (
+                <TutorCard key={tutor.id} tutor={tutor} />
+              ))
+            )}
         </div>
       </div>
        <section className="py-20 bg-secondary/50">
@@ -58,7 +100,7 @@ export default function TutorsPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-headline font-semibold">Personalized Attention</h3>
-                    <p className="text-muted-foreground">With just two dedicated tutors, you receive focused, one-on-one attention.</p>
+                    <p className="text-muted-foreground">With our dedicated tutors, you receive focused, one-on-one attention.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -98,3 +140,20 @@ export default function TutorsPage() {
     </div>
   );
 }
+
+const TutorCardSkeleton = () => (
+    <div className="flex flex-col h-full bg-card/80 backdrop-blur-sm border-2 border-primary/10 rounded-xl overflow-hidden p-6 space-y-4">
+        <div className="flex flex-col items-center">
+            <Skeleton className="w-32 h-32 rounded-full mb-4" />
+            <Skeleton className="h-8 w-1/2 mb-2" />
+            <Skeleton className="h-4 w-1/3" />
+        </div>
+         <Skeleton className="h-20 w-full" />
+         <div className="space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-1/2" />
+        </div>
+        <Skeleton className="h-12 w-full rounded-full" />
+    </div>
+);

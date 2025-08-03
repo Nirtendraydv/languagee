@@ -1,22 +1,98 @@
+
 "use client";
 
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { COURSES, TUTORS } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, BookOpen, Calendar, Clock, Star, Users, Target } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star } from 'lucide-react';
 import CourseCard from '@/components/CourseCard';
+import { db } from '@/lib/firebase';
+import { collection, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
+
+type Course = {
+  id: string;
+  title: string;
+  level: string;
+  ageGroup: string;
+  goal: string;
+  description: string;
+  badge?: string;
+  image: string;
+  liveClassLink: string;
+};
+
+type Tutor = {
+  id: string;
+  name: string;
+  avatar: string;
+  rating: number;
+};
 
 export default function CourseDetailPage() {
   const params = useParams();
-  const courseId = parseInt(params.id as string, 10);
-  const course = COURSES.find(c => c.id === courseId);
+  const courseId = params.id as string;
+  const [course, setCourse] = useState<Course | null>(null);
+  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [relatedCourses, setRelatedCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const relatedCourses = COURSES.filter(c => c.id !== courseId && (c.level === course?.level || c.goal === course?.goal)).slice(0, 3);
+  useEffect(() => {
+    if (!courseId) return;
+
+    const fetchCourseData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch course details
+        const courseRef = doc(db, 'courses', courseId);
+        const courseSnap = await getDoc(courseRef);
+
+        if (courseSnap.exists()) {
+          const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
+          setCourse(courseData);
+
+          // Fetch related courses
+          const relatedQuery = query(
+            collection(db, 'courses'),
+            where('level', '==', courseData.level),
+            where('__name__', '!=', courseId),
+            limit(3)
+          );
+          const relatedSnapshot = await getDocs(relatedQuery);
+          const relatedList = relatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+          setRelatedCourses(relatedList);
+
+        } else {
+          console.log("No such course!");
+        }
+
+        // Fetch tutors
+        const tutorsSnapshot = await getDocs(collection(db, 'tutors'));
+        const tutorsList = tutorsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tutor));
+        setTutors(tutorsList);
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourseData();
+  }, [courseId]);
+
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-20 text-center flex justify-center items-center h-[80vh]">
+        <Loader2 className="h-16 w-16 animate-spin" />
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -43,7 +119,7 @@ export default function CourseDetailPage() {
             </Link>
             <div className="relative w-full h-96 rounded-lg overflow-hidden shadow-lg mb-8">
                 <Image
-                    src={course.image}
+                    src={course.image || 'https://placehold.co/800x400.png'}
                     alt={course.title}
                     layout="fill"
                     objectFit="cover"
@@ -89,12 +165,18 @@ export default function CourseDetailPage() {
             <div className="sticky top-24">
               <Card className="shadow-xl">
                 <CardHeader>
-                  <CardTitle className="font-headline text-2xl">Schedule a Lesson</CardTitle>
+                  <CardTitle className="font-headline text-2xl">Ready to Start?</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground mb-6">Ready to start learning? Book a lesson with one of our expert tutors.</p>
+                  <a href={course.liveClassLink} target="_blank" rel="noopener noreferrer">
+                    <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-6 mb-4">
+                      <LinkIcon className="mr-2" />
+                      Join Live Class
+                    </Button>
+                  </a>
+                   <p className="text-muted-foreground mb-4 text-center text-sm">Or book a lesson with a tutor:</p>
                   <div className="flex flex-col gap-4 mb-6">
-                    {TUTORS.map(tutor => (
+                    {tutors.map(tutor => (
                       <div key={tutor.id} className="flex items-center gap-3">
                         <Avatar className="w-12 h-12">
                           <AvatarImage src={tutor.avatar} alt={tutor.name} />
@@ -122,14 +204,16 @@ export default function CourseDetailPage() {
           </aside>
         </div>
 
-        <div className="mt-20">
-            <h2 className="text-3xl font-bold font-headline text-center mb-8">Related Courses</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {relatedCourses.map(relatedCourse => (
-                    <CourseCard key={relatedCourse.id} course={relatedCourse} />
-                ))}
+        {relatedCourses.length > 0 && (
+            <div className="mt-20">
+                <h2 className="text-3xl font-bold font-headline text-center mb-8">Related Courses</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {relatedCourses.map(relatedCourse => (
+                        <CourseCard key={relatedCourse.id} course={relatedCourse} />
+                    ))}
+                </div>
             </div>
-        </div>
+        )}
       </div>
     </div>
   );

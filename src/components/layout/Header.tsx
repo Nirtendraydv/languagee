@@ -2,19 +2,36 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Globe, UserCog } from "lucide-react";
 import NavItem from "./NavItem";
 import { useAuth } from "../AuthProvider";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const ADMIN_EMAIL = 'admin@example.com';
 
 export default function Header() {
   const [isSheetOpen, setSheetOpen] = useState(false);
+  const [siteName, setSiteName] = useState("English Excellence");
   const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchSiteName = async () => {
+      try {
+        const docRef = doc(db, "settings", "siteConfig");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setSiteName(docSnap.data().siteName || "English Excellence");
+        }
+      } catch (error) {
+        console.error("Error fetching site name:", error);
+      }
+    };
+    fetchSiteName();
+  }, []);
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -35,7 +52,7 @@ export default function Header() {
       <div className="container flex h-16 max-w-7xl items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Globe className="h-7 w-7 text-primary animate-pulse" />
-          <span className="font-headline text-2xl font-bold">English Excellence</span>
+          <span className="font-headline text-2xl font-bold">{siteName}</span>
         </Link>
 
         <nav className="hidden md:flex gap-6">
@@ -81,7 +98,7 @@ export default function Header() {
               <div className="flex flex-col gap-6 p-6">
                 <Link href="/" className="flex items-center gap-2 mb-4" onClick={() => setSheetOpen(false)}>
                     <Globe className="h-7 w-7 text-primary" />
-                    <span className="font-headline text-2xl font-bold">English Excellence</span>
+                    <span className="font-headline text-2xl font-bold">{siteName}</span>
                 </Link>
                 <nav className="flex flex-col gap-4">
                 {navLinks.map((link) => (

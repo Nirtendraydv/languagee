@@ -1,7 +1,7 @@
 
-export const COURSES = [
+export const COURSES_PLACEHOLDER = [
   {
-    id: 1,
+    id: '1',
     title: 'Beginner English: The Basics',
     level: 'Beginner',
     ageGroup: 'Adults',
@@ -10,9 +10,10 @@ export const COURSES = [
     badge: 'Free Trial',
     image: 'https://images.unsplash.com/photo-1543165794-803225536569?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'abc blocks',
+    liveClassLink: 'https://meet.google.com/new',
   },
   {
-    id: 2,
+    id: '2',
     title: 'Intermediate Conversation Skills',
     level: 'Intermediate',
     ageGroup: 'Adults',
@@ -21,45 +22,25 @@ export const COURSES = [
     badge: 'Popular',
     image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'people talking',
+    liveClassLink: 'https://meet.google.com/new',
   },
   {
-    id: 3,
+    id: '3',
     title: 'Advanced Business English',
     level: 'Advanced',
     ageGroup: 'Adults',
     goal: 'Business English',
     description: 'Perfect your professional communication for meetings, presentations, and negotiations.',
-    badge: null,
+    badge: '',
     image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'business meeting',
-  },
-  {
-    id: 5,
-    title: 'English for Kids: Fun & Games',
-    level: 'Beginner',
-    ageGroup: 'Kids',
-    goal: 'Conversation',
-    description: 'An exciting, game-based curriculum to get young learners excited about English.',
-    badge: 'New',
-    image: 'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?q=80&w=600&auto=format&fit=crop',
-    dataAiHint: 'kids playing',
-  },
-  {
-    id: 6,
-    title: 'Grammar Guru',
-    level: 'Intermediate',
-    ageGroup: 'Teens',
-    goal: 'Grammar',
-    description: 'Deep dive into complex grammar topics to write and speak with precision.',
-    badge: null,
-    image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=600&auto=format&fit=crop',
-    dataAiHint: 'books library',
+    liveClassLink: 'https://meet.google.com/new',
   },
 ];
 
-export const TUTORS = [
+export const TUTORS_PLACEHOLDER = [
   {
-    id: 1,
+    id: '1',
     name: 'Jane Doe',
     country: 'USA',
     experience: 5,
@@ -71,7 +52,7 @@ export const TUTORS = [
     specialties: ['Beginner English', 'Conversational Practice', 'Pronunciation', 'Confidence Building'],
   },
   {
-    id: 2,
+    id: '2',
     name: 'John Smith',
     country: 'UK',
     experience: 8,
@@ -123,3 +104,47 @@ A: Standard lessons are 50 minutes long, but some tutors may offer different dur
 Q: What materials do I need?
 A: All you need is a stable internet connection, a device with a camera and microphone (like a computer or tablet), and a willingness to learn! Tutors will provide all necessary learning materials.
 `;
+
+// It's better to keep the AI prompt data separate from the main constants
+export const AI_TUTOR_COURSES_CONTEXT = [
+  {
+    id: 1,
+    title: 'Beginner English: The Basics',
+    level: 'Beginner',
+    ageGroup: 'Adults',
+    goal: 'Grammar',
+    description: 'Master the fundamentals of English, from basic vocabulary to simple sentence structures.',
+  },
+  {
+    id: 2,
+    title: 'Intermediate Conversation Skills',
+    level: 'Intermediate',
+    ageGroup: 'Adults',
+    goal: 'Conversation',
+    description: 'Build confidence in speaking and listening with real-world conversation practice.',
+  },
+  {
+    id: 3,
+    title: 'Advanced Business English',
+    level: 'Advanced',
+    ageGroup: 'Adults',
+    goal: 'Business English',
+    description: 'Perfect your professional communication for meetings, presentations, and negotiations.',
+  },
+  {
+    id: 5,
+    title: 'English for Kids: Fun & Games',
+    level: 'Beginner',
+    ageGroup: 'Kids',
+    goal: 'Conversation',
+    description: 'An exciting, game-based curriculum to get young learners excited about English.',
+  },
+  {
+    id: 6,
+    title: 'Grammar Guru',
+    level: 'Intermediate',
+    ageGroup: 'Teens',
+    goal: 'Grammar',
+    description: 'Deep dive into complex grammar topics to write and speak with precision.',
+  },
+];

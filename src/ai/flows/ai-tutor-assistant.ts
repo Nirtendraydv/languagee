@@ -1,9 +1,10 @@
+
 // This is an AI-powered tutor assistant that answers user questions about English courses.
 'use server';
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {COURSES} from '@/lib/constants';
+import {AI_TUTOR_COURSES_CONTEXT} from '@/lib/constants';
 
 const AiTutorAssistantInputSchema = z.object({
   question: z.string().describe('The user question about the course material.'),
@@ -48,7 +49,7 @@ const aiTutorAssistantFlow = ai.defineFlow(
     outputSchema: AiTutorAssistantOutputSchema,
   },
   async (input) => {
-    const {output} = await answerQuestionPrompt({question: input.question, courses: COURSES});
+    const {output} = await answerQuestionPrompt({question: input.question, courses: AI_TUTOR_COURSES_CONTEXT});
     return output!;
   }
 );
