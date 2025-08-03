@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Admins have full access to everything
+    match /{path=**} {
+      allow read, write: if request.auth.token.email == 'admin@example.com';
+    }
+    
+    // Publicly readable collections
+    match /courses/{courseId} {
+      allow read: if true;
+    }
+    
+    match /tutors/{tutorId} {
+      allow read: if true;
+    }
+
+    match /settings/homepageConfig {
+       allow read: if true;
+    }
+
+    // Allow anyone to create inquiries
+    match /inquiries/{inquiryId} {
+      allow create: if true;
+    }
+
+  }
+}
