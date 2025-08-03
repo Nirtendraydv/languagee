@@ -80,7 +80,7 @@ export const TUTORS_PLACEHOLDER = [
 export const TESTIMONIALS = [
   {
     name: 'Alex Johnson',
-    quote: 'English Excellence completely transformed my confidence in speaking English. The tutors are fantastic and the lessons are so engaging!',
+    quote: 'LingoSphere completely transformed my confidence in speaking English. The tutors are fantastic and the lessons are so engaging!',
     avatar: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=100&auto=format&fit=crop',
   },
   {
@@ -95,7 +95,7 @@ export const TESTIMONIALS = [
   },
   {
     name: 'Fatima Al-Sayed',
-    quote: 'Thanks to English Excellence, I passed my exams with a great score. The prep course was thorough and very helpful.',
+    quote: 'Thanks to LingoSphere, I passed my exams with a great score. The prep course was thorough and very helpful.',
     avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=100&auto=format&fit=crop',
   },
 ];

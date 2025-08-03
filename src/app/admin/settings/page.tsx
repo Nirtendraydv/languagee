@@ -273,7 +273,7 @@ export default function AdminSettingsPage() {
                                     <Input value={content.features.title} onChange={e => handleInputChange('features', 'title', e.target.value)} />
                                 </div>
                                 <Label>Feature Items</Label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                    {content.features.items.map((item, index) => (
                                        <div key={index} className="p-4 border rounded-lg space-y-2">
                                            <Label>Feature {index + 1} Title</Label>
