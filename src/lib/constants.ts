@@ -10,7 +10,9 @@ export const COURSES_PLACEHOLDER = [
     badge: 'Free Trial',
     image: 'https://images.unsplash.com/photo-1543165794-803225536569?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'abc blocks',
-    liveClassLink: 'https://meet.google.com/new',
+    resourceLink: 'https://meet.google.com/new',
+    courseType: 'multi-session',
+    courseStructure: '8 sessions over 4 weeks',
   },
   {
     id: '2',
@@ -22,7 +24,9 @@ export const COURSES_PLACEHOLDER = [
     badge: 'Popular',
     image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'people talking',
-    liveClassLink: 'https://meet.google.com/new',
+    resourceLink: 'https://meet.google.com/new',
+    courseType: 'multi-session',
+    courseStructure: '10-session package',
   },
   {
     id: '3',
@@ -34,7 +38,9 @@ export const COURSES_PLACEHOLDER = [
     badge: '',
     image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'business meeting',
-    liveClassLink: 'https://meet.google.com/new',
+    resourceLink: 'https://meet.google.com/new',
+    courseType: 'single',
+    courseStructure: 'Intensive 2-hour workshop',
   },
 ];
 
@@ -148,3 +154,5 @@ export const AI_TUTOR_COURSES_CONTEXT = [
     description: 'Deep dive into complex grammar topics to write and speak with precision.',
   },
 ];
+
+    

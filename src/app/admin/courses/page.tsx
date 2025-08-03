@@ -9,13 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw, Link2, Youtube, Package, Package2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { COURSES_PLACEHOLDER } from '@/lib/constants';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Course = {
   id: string;
@@ -27,7 +28,17 @@ type Course = {
   badge?: string;
   image: string;
   dataAiHint?: string;
-  liveClassLink: string;
+  resourceLink: string;
+  courseType: 'single' | 'multi-session';
+  courseStructure: string;
+};
+
+const defaultCourse: Partial<Course> = {
+    image: 'https://placehold.co/600x400.png',
+    dataAiHint: 'education',
+    resourceLink: 'https://meet.google.com/new',
+    courseType: 'single',
+    courseStructure: '1 session'
 };
 
 export default function AdminCoursesPage() {
@@ -72,38 +83,30 @@ export default function AdminCoursesPage() {
     if (!currentCourse) return;
 
     try {
-      if (currentCourse.id) {
-        // Update existing course
-        const courseRef = doc(db, "courses", currentCourse.id);
-        const { id, ...courseData } = currentCourse;
-        await updateDoc(courseRef, courseData);
-        toast({ title: "Success", description: "Course updated successfully." });
-      } else {
-        // Add new course
-        const { id, ...courseData } = currentCourse;
-        // Provide default values for required fields if they are empty
-        const newCourseData = {
-          ...courseData,
-          title: courseData.title || "New Course",
-          level: courseData.level || "N/A",
-          ageGroup: courseData.ageGroup || "N/A",
-          goal: courseData.goal || "N/A",
-          description: courseData.description || "No description.",
-          image: courseData.image || 'https://placehold.co/600x400.png',
-          dataAiHint: courseData.dataAiHint || 'education',
-          liveClassLink: courseData.liveClassLink || '#',
-        };
-        await addDoc(collection(db, "courses"), newCourseData);
-        toast({ title: "Success", description: "Course added successfully." });
-      }
-      await fetchCourses();
-      setIsDialogOpen(false);
-      setCurrentCourse(null);
+        const courseData = { ...currentCourse };
+
+        if (currentCourse.id) {
+            // Update existing course
+            const courseRef = doc(db, "courses", currentCourse.id);
+            const { id, ...updateData } = courseData;
+            await updateDoc(courseRef, updateData);
+            toast({ title: "Success", description: "Course updated successfully." });
+        } else {
+            // Add new course, ensuring all required fields have defaults
+            const newCourseData = { ...defaultCourse, ...courseData };
+            await addDoc(collection(db, "courses"), newCourseData);
+            toast({ title: "Success", description: "Course added successfully." });
+        }
+
+        await fetchCourses();
+        setIsDialogOpen(false);
+        setCurrentCourse(null);
     } catch (error) {
-      console.error("Error saving course:", error);
-      toast({ variant: "destructive", title: "Error", description: "Failed to save course." });
+        console.error("Error saving course:", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to save course." });
     }
-  };
+};
+
 
   const handleDelete = async (courseId: string) => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
@@ -121,6 +124,10 @@ export default function AdminCoursesPage() {
     const { name, value } = e.target;
     setCurrentCourse(prev => prev ? { ...prev, [name]: value } : null);
   };
+  
+  const handleSelectChange = (name: string, value: string) => {
+      setCurrentCourse(prev => prev ? { ...prev, [name]: value } : null);
+  }
 
   return (
     <div className="p-8">
@@ -133,16 +140,12 @@ export default function AdminCoursesPage() {
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-                <Button onClick={() => setCurrentCourse({
-                  image: 'https://placehold.co/600x400.png',
-                  dataAiHint: 'education',
-                  liveClassLink: 'https://meet.google.com/new'
-                })}>
+                <Button onClick={() => setCurrentCourse(defaultCourse)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New Course
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                 <DialogTitle>{currentCourse?.id ? "Edit Course" : "Add New Course"}</DialogTitle>
                 </DialogHeader>
@@ -151,6 +154,11 @@ export default function AdminCoursesPage() {
                     <Label htmlFor="title">Title</Label>
                     <Input id="title" name="title" value={currentCourse?.title || ''} onChange={handleFormChange} required />
                 </div>
+                <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description" name="description" value={currentCourse?.description || ''} onChange={handleFormChange} required />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="level">Level</Label>
@@ -161,31 +169,58 @@ export default function AdminCoursesPage() {
                         <Input id="ageGroup" name="ageGroup" value={currentCourse?.ageGroup || ''} onChange={handleFormChange} required />
                     </div>
                 </div>
+
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="courseType">Course Type</Label>
+                         <Select name="courseType" value={currentCourse?.courseType || 'single'} onValueChange={(value) => handleSelectChange('courseType', value)}>
+                             <SelectTrigger>
+                                 <SelectValue placeholder="Select course type" />
+                             </SelectTrigger>
+                             <SelectContent>
+                                 <SelectItem value="single"><div className="flex items-center gap-2"><Package size={16}/> Single Session</div></SelectItem>
+                                 <SelectItem value="multi-session"><div className="flex items-center gap-2"><Package2 size={16}/> Multi-session</div></SelectItem>
+                             </SelectContent>
+                         </Select>
+                     </div>
+                     <div className="space-y-2">
+                         <Label htmlFor="courseStructure">Course Structure</Label>
+                         <Input id="courseStructure" name="courseStructure" value={currentCourse?.courseStructure || ''} onChange={handleFormChange} placeholder="e.g., 4 modules, 1-hour each"/>
+                     </div>
+                </div>
+
+
                 <div className="space-y-2">
                     <Label htmlFor="goal">Goal</Label>
                     <Input id="goal" name="goal" value={currentCourse?.goal || ''} onChange={handleFormChange} required />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" name="description" value={currentCourse?.description || ''} onChange={handleFormChange} required />
+                    <Label htmlFor="resourceLink">Class/Video Link</Label>
+                     <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground"><Link2 size={16}/></span>
+                        <Input id="resourceLink" name="resourceLink" value={currentCourse?.resourceLink || ''} onChange={handleFormChange} required placeholder="https://meet.google.com/... or https://youtube.com/..." />
+                    </div>
                 </div>
+
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="image">Image URL</Label>
+                        <Input id="image" name="image" value={currentCourse?.image || ''} onChange={handleFormChange} required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="dataAiHint">Image AI Hint</Label>
+                        <Input id="dataAiHint" name="dataAiHint" value={currentCourse?.dataAiHint || ''} onChange={handleFormChange} />
+                    </div>
+                </div>
+
                 <div className="space-y-2">
                     <Label htmlFor="badge">Badge (optional)</Label>
-                    <Input id="badge" name="badge" value={currentCourse?.badge || ''} onChange={handleFormChange} />
+                    <Input id="badge" name="badge" value={currentCourse?.badge || ''} onChange={handleFormChange} placeholder="e.g., Popular, New" />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="image">Image URL</Label>
-                    <Input id="image" name="image" value={currentCourse?.image || ''} onChange={handleFormChange} required />
+                
+                <div className="flex justify-end pt-4">
+                  <Button type="submit">Save Course</Button>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="dataAiHint">Image AI Hint</Label>
-                    <Input id="dataAiHint" name="dataAiHint" value={currentCourse?.dataAiHint || ''} onChange={handleFormChange} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="liveClassLink">Live Class Link</Label>
-                    <Input id="liveClassLink" name="liveClassLink" value={currentCourse?.liveClassLink || ''} onChange={handleFormChange} required />
-                </div>
-                <Button type="submit">Save Course</Button>
                 </form>
             </DialogContent>
             </Dialog>
@@ -208,8 +243,8 @@ export default function AdminCoursesPage() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Level</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Goal</TableHead>
-                  <TableHead>Age Group</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -220,8 +255,10 @@ export default function AdminCoursesPage() {
                     <TableCell>
                       <Badge variant="outline">{course.level}</Badge>
                     </TableCell>
+                    <TableCell>
+                      <Badge variant={course.courseType === 'single' ? 'secondary' : 'default'} className="capitalize">{course.courseType}</Badge>
+                    </TableCell>
                     <TableCell>{course.goal}</TableCell>
-                    <TableCell>{course.ageGroup}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -255,3 +292,5 @@ export default function AdminCoursesPage() {
     </div>
   );
 }
+
+    

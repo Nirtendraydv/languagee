@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star, Package, Package2 } from 'lucide-react';
 import CourseCard from '@/components/CourseCard';
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
@@ -23,7 +23,9 @@ type Course = {
   description: string;
   badge?: string;
   image: string;
-  liveClassLink: string;
+  resourceLink: string;
+  courseType: 'single' | 'multi-session';
+  courseStructure: string;
 };
 
 type Tutor = {
@@ -131,18 +133,22 @@ export default function CourseDetailPage() {
 
             <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary mb-4">{course.title}</h1>
             
-            <div className="flex flex-wrap items-center gap-4 mb-6 text-muted-foreground">
-                <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6 text-muted-foreground">
+                <div className="flex items-center gap-2" title="Level">
                     <BookOpen size={20} className="text-primary"/>
                     <span className="font-semibold">{course.level}</span>
                 </div>
-                 <div className="flex items-center gap-2">
+                 <div className="flex items-center gap-2" title="Age Group">
                     <Users size={20} className="text-primary"/>
                     <span className="font-semibold">{course.ageGroup}</span>
                 </div>
-                 <div className="flex items-center gap-2">
+                 <div className="flex items-center gap-2" title="Learning Goal">
                     <Target size={20} className="text-primary"/>
                     <span className="font-semibold">{course.goal}</span>
+                </div>
+                 <div className="flex items-center gap-2" title="Course Type">
+                    {course.courseType === 'single' ? <Package size={20} className="text-primary"/> : <Package2 size={20} className="text-primary"/>}
+                    <span className="font-semibold capitalize">{course.courseType.replace('-', ' ')}</span>
                 </div>
             </div>
 
@@ -159,6 +165,11 @@ export default function CourseDetailPage() {
                     <li>Cultural nuances in English.</li>
                 </ul>
             </div>
+            
+             <div className="bg-card p-6 rounded-lg shadow-sm">
+                <h3 className="text-2xl font-bold font-headline mb-4">Course Structure</h3>
+                <p className="text-muted-foreground">{course.courseStructure}</p>
+            </div>
           </div>
 
           <aside className="md:col-span-1">
@@ -168,15 +179,15 @@ export default function CourseDetailPage() {
                   <CardTitle className="font-headline text-2xl">Ready to Start?</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <a href={course.liveClassLink} target="_blank" rel="noopener noreferrer">
+                  <a href={course.resourceLink} target="_blank" rel="noopener noreferrer">
                     <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-6 mb-4">
                       <LinkIcon className="mr-2" />
-                      Join Live Class
+                      Join Class / Watch Video
                     </Button>
                   </a>
                    <p className="text-muted-foreground mb-4 text-center text-sm">Or book a lesson with a tutor:</p>
                   <div className="flex flex-col gap-4 mb-6">
-                    {tutors.map(tutor => (
+                    {tutors.slice(0, 2).map(tutor => (
                       <div key={tutor.id} className="flex items-center gap-3">
                         <Avatar className="w-12 h-12">
                           <AvatarImage src={tutor.avatar} alt={tutor.name} />
@@ -218,3 +229,5 @@ export default function CourseDetailPage() {
     </div>
   );
 }
+
+    
