@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import Link from "next/link";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -44,14 +46,24 @@ export default function ContactPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Simulate an API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log(values);
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We'll get back to you shortly.",
-    });
-    form.reset();
+    try {
+      await addDoc(collection(db, "inquiries"), {
+        ...values,
+        createdAt: serverTimestamp(),
+      });
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We'll get back to you shortly.",
+      });
+      form.reset();
+    } catch (error) {
+       console.error("Error sending message:", error);
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: "There was a problem sending your message. Please try again.",
+      });
+    }
   }
 
   return (
