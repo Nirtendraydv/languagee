@@ -4,19 +4,16 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MessageSquare, Send, Bot, User, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { aiTutorAssistant, AiTutorAssistantOutput } from '@/ai/flows/ai-tutor-assistant';
-import { TUTOR_FAQ } from '@/lib/constants';
 
 type Message = {
   id: number;
   role: 'user' | 'bot';
   content: string;
-  emailDraft?: string;
 };
 
 export function AiTutorSidebar() {
@@ -37,14 +34,12 @@ export function AiTutorSidebar() {
     try {
       const result: AiTutorAssistantOutput = await aiTutorAssistant({
         question: input,
-        faq: TUTOR_FAQ,
       });
 
       const botMessage: Message = {
         id: Date.now() + 1,
         role: 'bot',
         content: result.answer,
-        emailDraft: result.emailDraft,
       };
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
@@ -78,7 +73,7 @@ export function AiTutorSidebar() {
               <Bot className="text-primary" /> AI Tutor Assistant
             </SheetTitle>
             <SheetDescription>
-              Ask a question about learning, classes, or our platform.
+              Ask a question about our English courses.
             </SheetDescription>
           </SheetHeader>
           <ScrollArea className="flex-grow p-6">
@@ -97,12 +92,6 @@ export function AiTutorSidebar() {
                   )}
                   <div className={cn("max-w-[75%] rounded-lg p-3", message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    {message.emailDraft && (
-                        <div className="mt-4 border-t pt-2">
-                            <p className="text-xs font-semibold mb-2">Here's a draft email to your tutor:</p>
-                            <Textarea readOnly value={message.emailDraft} className="text-xs h-40 bg-background" />
-                        </div>
-                    )}
                   </div>
                    {message.role === 'user' && (
                     <Avatar className="w-8 h-8">

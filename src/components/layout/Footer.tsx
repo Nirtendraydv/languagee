@@ -29,7 +29,7 @@ export default function Footer() {
                     <div className="space-y-4 col-span-2 md:col-span-1">
                         <Link href="/" className="flex items-center gap-2">
                           <Globe className="h-7 w-7 text-primary" />
-                          <span className="font-headline text-2xl font-bold">LingoSphere</span>
+                          <span className="font-headline text-2xl font-bold">English Excellence</span>
                         </Link>
                         <p className="text-muted-foreground">Learn English Anywhere.</p>
                         <div className="flex space-x-4">
@@ -56,7 +56,7 @@ export default function Footer() {
                     </div>
                 </div>
                 <div className="mt-12 border-t pt-8 text-center text-muted-foreground">
-                    <p>&copy; {new Date().getFullYear()} LingoSphere. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} English Excellence. All rights reserved.</p>
                 </div>
             </div>
         </footer>

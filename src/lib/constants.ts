@@ -88,52 +88,12 @@ export const TUTORS = [
     avatar: 'https://placehold.co/100x100.png',
     dataAiHint: 'man portrait',
   },
-  {
-    id: 3,
-    name: 'Emily Jones',
-    country: 'Canada',
-    experience: 3,
-    rating: 4.7,
-    accent: 'Canadian',
-    avatar: 'https://placehold.co/100x100.png',
-    dataAiHint: 'woman portrait',
-  },
-  {
-    id: 4,
-    name: 'Michael Williams',
-    country: 'Australia',
-    experience: 10,
-    rating: 5.0,
-    accent: 'Australian',
-    avatar: 'https://placehold.co/100x100.png',
-    dataAiHint: 'man smiling',
-  },
-  {
-    id: 5,
-    name: 'David Brown',
-    country: 'Ireland',
-    experience: 6,
-    rating: 4.9,
-    accent: 'Irish',
-    avatar: 'https://placehold.co/100x100.png',
-    dataAiHint: 'man professional',
-  },
-  {
-    id: 6,
-    name: 'Sarah Davis',
-    country: 'USA',
-    experience: 4,
-    rating: 4.8,
-    accent: 'American',
-    avatar: 'https://placehold.co/100x100.png',
-    dataAiHint: 'woman teacher',
-  },
 ];
 
 export const TESTIMONIALS = [
   {
     name: 'Alex Johnson',
-    quote: 'LingoSphere completely transformed my confidence in speaking English. The tutors are fantastic and the lessons are so engaging!',
+    quote: 'English Excellence completely transformed my confidence in speaking English. The tutors are fantastic and the lessons are so engaging!',
     avatar: 'https://placehold.co/100x100.png',
   },
   {
@@ -148,7 +108,7 @@ export const TESTIMONIALS = [
   },
   {
     name: 'Fatima Al-Sayed',
-    quote: 'Thanks to LingoSphere, I passed my IELTS with a great score. The prep course was thorough and very helpful.',
+    quote: 'Thanks to English Excellence, I passed my IELTS with a great score. The prep course was thorough and very helpful.',
     avatar: 'https://placehold.co/100x100.png',
   },
 ];

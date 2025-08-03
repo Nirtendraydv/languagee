@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AiTutorSidebar } from '@/components/AiTutorSidebar';
 
 export const metadata: Metadata = {
-  title: 'LingoSphere - Learn English Anywhere',
+  title: 'English Excellence - Learn English Anywhere',
   description: 'An online English tutoring platform with a modern, interactive, and immersive learning experience.',
 };
 

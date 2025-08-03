@@ -28,7 +28,7 @@ export default function Home() {
             Learn English Anywhere <span className="animate-pulse">🌍</span>
           </h1>
           <p className="text-lg md:text-2xl mb-8 max-w-3xl mx-auto font-body">
-            Join LingoSphere for an immersive, fun, and effective way to master English with the best tutors from around the world.
+            Join English Excellence for an immersive, fun, and effective way to master English with the best tutors from around the world.
           </p>
           <Link href="/courses">
             <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full text-lg px-10 py-6 animate-glow">
@@ -84,7 +84,7 @@ export default function Home() {
         <div className="container mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl font-headline font-bold mb-4">Why Choose LingoSphere?</h2>
+              <h2 className="text-4xl font-headline font-bold mb-4">Why Choose English Excellence?</h2>
               <p className="text-lg text-muted-foreground mb-8">
                 We provide a comprehensive and engaging learning experience designed for success.
               </p>
@@ -174,7 +174,7 @@ export default function Home() {
       <section className="w-full py-20 bg-primary text-center text-white">
         <div className="container mx-auto">
           <h2 className="text-4xl font-headline font-bold mb-4">Ready to Start Your Journey?</h2>
-          <p className="text-lg mb-8">Join thousands of students and unlock your potential with LingoSphere.</p>
+          <p className="text-lg mb-8">Join thousands of students and unlock your potential with English Excellence.</p>
           <Link href="/courses">
             <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90 rounded-full text-lg px-10 py-6">
               Explore Courses
