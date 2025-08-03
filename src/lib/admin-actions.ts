@@ -1,17 +1,24 @@
 
 'use server';
 
-import { initializeApp, getApps, getApp, App } from "firebase-admin/app";
+import { initializeApp, getApps, getApp, App, cert } from "firebase-admin/app";
 import { getAuth as getAdminAuth, UserRecord } from "firebase-admin/auth";
+import { getServiceAccount } from "firebase-admin/app";
 
 const adminApp = (): App => {
     if (getApps().length > 0) {
         return getApp();
     }
-    return initializeApp({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        // The serviceAccount property is automatically populated by Firebase App Hosting
-    });
+    
+    // Check for GOOGLE_APPLICATION_CREDENTIALS for local development
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        return initializeApp({
+            credential: cert(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)),
+        });
+    }
+
+    // Use default credentials for App Hosting
+    return initializeApp();
 }
 
 export async function listAllUsers(): Promise<{uid: string, email: string}[]> {
@@ -38,5 +45,3 @@ export async function listAllUsers(): Promise<{uid: string, email: string}[]> {
     throw new Error("Could not list users.");
   }
 }
-
-    
