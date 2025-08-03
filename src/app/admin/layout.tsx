@@ -12,7 +12,7 @@ import {
   SidebarFooter,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { MessageSquare, LayoutDashboard, User, LogOut } from "lucide-react";
+import { MessageSquare, LayoutDashboard, User, LogOut, BookOpen, Users, Settings } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -29,9 +29,27 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/admin/inquiries" tooltip="Inquiries" isActive>
+              <SidebarMenuButton href="/admin/inquiries">
                 <MessageSquare />
                 <span>Inquiries</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton href="/admin/courses">
+                <BookOpen />
+                <span>Courses</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton href="/admin/tutors">
+                <Users />
+                <span>Tutors</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/admin/settings">
+                <Settings />
+                <span>Settings</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
