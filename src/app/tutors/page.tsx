@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { TUTOR_FAQ, TUTORS_PLACEHOLDER } from '@/lib/constants';
+import { TUTOR_FAQ } from '@/lib/constants';
 import TutorCard from '@/components/TutorCard';
 import { Award, Heart, Users } from 'lucide-react';
 import Image from 'next/image';
@@ -27,16 +27,22 @@ type Tutor = {
 export default function TutorsPage() {
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTutors = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const querySnapshot = await getDocs(collection(db, "tutors"));
+        if (querySnapshot.empty) {
+          setError("No tutors could be found at this time.");
+        }
         const tutorsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tutor));
         setTutors(tutorsList);
       } catch (error) {
         console.error("Error fetching tutors: ", error);
-        setTutors(TUTORS_PLACEHOLDER as Tutor[]);
+        setError("There was an error loading our tutors. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -60,6 +66,10 @@ export default function TutorsPage() {
                 <TutorCardSkeleton />
                 <TutorCardSkeleton />
               </>
+            ) : error ? (
+                <div className="md:col-span-2 text-center text-destructive bg-destructive/10 p-8 rounded-lg">
+                    {error}
+                </div>
             ) : (
                tutors.map(tutor => (
                 <TutorCard key={tutor.id} tutor={tutor} />

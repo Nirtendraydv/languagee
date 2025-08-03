@@ -77,20 +77,6 @@ export const TUTORS_PLACEHOLDER = [
   },
 ];
 
-export const USERS_PLACEHOLDER = [
-  {
-    uid: 'placeholder-user-1',
-    email: 'user1@example.com',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    uid: 'placeholder-user-2',
-    email: 'user2@example.com',
-    createdAt: new Date().toISOString(),
-  }
-];
-
-
 export const TESTIMONIALS = [
   {
     name: 'Alex Johnson',

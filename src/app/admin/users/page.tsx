@@ -7,10 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2, RefreshCw, Terminal } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { collection, getDocs, onSnapshot, setDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
-import { USERS_PLACEHOLDER } from '@/lib/constants';
 import { listAllAuthUsers } from '@/lib/admin-actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -47,15 +46,6 @@ export default function UsersPage() {
             setUsers([]);
             setIsLoading(false);
             return;
-          }
-
-          if (authUsers.length === 0) {
-              const firestoreUsersSnapshot = await getDocs(collection(db, "users"));
-              if(firestoreUsersSnapshot.empty && USERS_PLACEHOLDER.length > 0) {
-                  for (const user of USERS_PLACEHOLDER) {
-                      await setDoc(doc(db, "users", user.uid), { email: user.email, uid: user.uid, createdAt: user.createdAt });
-                  }
-              }
           }
           
           const coursesSnapshot = await getDocs(collection(db, "courses"));

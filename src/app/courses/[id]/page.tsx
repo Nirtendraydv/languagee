@@ -91,7 +91,8 @@ export default function CourseDetailPage() {
           console.log("No such course!");
         }
 
-        const tutorsSnapshot = await getDocs(collection(db, 'tutors'));
+        const tutorsQuery = query(collection(db, 'tutors'), limit(2));
+        const tutorsSnapshot = await getDocs(tutorsQuery);
         const tutorsList = tutorsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tutor));
         setTutors(tutorsList);
 
