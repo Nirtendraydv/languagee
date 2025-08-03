@@ -14,9 +14,9 @@ export default function Home() {
       <section className="w-full h-[90vh] md:h-screen relative overflow-hidden flex items-center justify-center text-center text-white bg-gradient-to-br from-primary via-blue-500 to-indigo-600">
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1520038410233-7141be7e6f97?q=80&w=1920&auto=format&fit=crop"
-            alt="World map background"
-            data-ai-hint="world map"
+            src="https://images.unsplash.com/photo-1453928582365-b6ad3332aab9?q=80&w=1920&auto=format&fit=crop"
+            alt="Person learning on a laptop"
+            data-ai-hint="laptop learning"
             layout="fill"
             objectFit="cover"
             className="opacity-20"
@@ -122,7 +122,7 @@ export default function Home() {
             <div>
               <h2 className="text-4xl font-headline font-bold mb-4">Why Choose English Excellence?</h2>
               <p className="text-lg text-muted-foreground mb-8">
-                We provide a comprehensive and engaging learning experience designed for success.
+                We provide a comprehensive and engaging learning experience designed for success. Our unique approach sets us apart.
               </p>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
@@ -131,7 +131,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-xl font-headline font-semibold">Interactive Learning</h3>
-                    <p className="text-muted-foreground">Our unique approach and virtual tools make learning unforgettable.</p>
+                    <p className="text-muted-foreground">Our unique approach and virtual tools make learning unforgettable. We use state-of-the-art technology to create an immersive environment.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -140,7 +140,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-xl font-headline font-semibold">Expert Tutors</h3>
-                    <p className="text-muted-foreground">Learn from our certified, passionate, and dedicated tutors.</p>
+                    <p className="text-muted-foreground">Learn from our certified, passionate, and dedicated tutors who have years of experience helping students succeed.</p>
                   </div>
                 </div>
                  <div className="flex items-start gap-4">
@@ -149,16 +149,16 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-xl font-headline font-semibold">Personalized Path</h3>
-                    <p className="text-muted-foreground">Customized lesson plans tailored to your level, goals, and interests.</p>
+                    <p className="text-muted-foreground">We create customized lesson plans tailored to your specific level, goals, and interests to ensure you get the most out of every class.</p>
                   </div>
                 </div>
               </div>
             </div>
             <div>
               <Image 
-                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=600&auto=format&fit=crop"
-                alt="Happy student learning online"
-                data-ai-hint="student online"
+                src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=600&auto=format&fit=crop"
+                alt="Two people discussing and learning"
+                data-ai-hint="people learning"
                 width={600}
                 height={600}
                 className="rounded-lg shadow-2xl"
