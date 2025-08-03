@@ -36,7 +36,7 @@ export default function TutorsPage() {
         setTutors(tutorsList);
       } catch (error) {
         console.error("Error fetching tutors: ", error);
-        setTutors(TUTORS_PLACEHOLDER.map(tutor => ({...tutor, id: tutor.id.toString()})) as Tutor[]);
+        setTutors(TUTORS_PLACEHOLDER as Tutor[]);
       } finally {
         setIsLoading(false);
       }

@@ -8,7 +8,7 @@ import { Badge } from './ui/badge';
 import Link from 'next/link';
 
 type Tutor = {
-  id: number;
+  id: string;
   name: string;
   country: string;
   experience: number;

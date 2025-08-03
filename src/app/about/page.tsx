@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TUTORS_PLACEHOLDER } from '@/lib/constants';
 
 type Tutor = {
   id: string;
@@ -38,6 +39,7 @@ export default function AboutPage() {
         setTutors(tutorsList);
       } catch (error) {
         console.error("Error fetching tutors:", error);
+        setTutors(TUTORS_PLACEHOLDER as Tutor[]);
       } finally {
         setIsLoading(false);
       }

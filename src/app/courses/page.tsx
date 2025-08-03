@@ -34,8 +34,7 @@ export default function CoursesPage() {
       } catch (error) {
         console.error("Error fetching courses: ", error);
         // Fallback to placeholder data on error
-        const placeholderCourses = COURSES_PLACEHOLDER.map(course => ({...course, id: course.id.toString(), dataAiHint: course.dataAiHint || ''}))
-        setCourses(placeholderCourses as Course[]);
+        setCourses(COURSES_PLACEHOLDER as Course[]);
       } finally {
         setIsLoading(false);
       }
