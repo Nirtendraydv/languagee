@@ -3,10 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, deleteDoc, doc, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, orderBy, query, Timestamp } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
 import { Trash2, Loader2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +16,7 @@ type Inquiry = {
   name: string;
   email: string;
   message: string;
-  createdAt: any; 
+  createdAt: Date; 
 };
 
 export default function InquiriesPage() {
@@ -31,11 +30,16 @@ export default function InquiriesPage() {
       const inquiriesCollection = collection(db, 'inquiries');
       const q = query(inquiriesCollection, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
-      const inquiriesList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt.toDate(),
-      } as Inquiry));
+      const inquiriesList = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          email: data.email,
+          message: data.message,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+        } as Inquiry
+      });
       setInquiries(inquiriesList);
     } catch (error) {
       console.error("Error fetching inquiries: ", error);
@@ -47,7 +51,7 @@ export default function InquiriesPage() {
 
   useEffect(() => {
     fetchInquiries();
-  }, []);
+  }, [toast]);
 
   const handleDelete = async (inquiryId: string) => {
     if (!window.confirm("Are you sure you want to delete this inquiry?")) return;
