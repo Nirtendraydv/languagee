@@ -21,7 +21,7 @@ import {
   User,
   LogOut,
   BookOpen,
-  Users,
+  Users as UsersIcon,
   Settings,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -78,6 +78,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
+             <SidebarMenuItem>
+              <Link href="/admin/users" passHref>
+                <SidebarMenuButton>
+                  <User />
+                  <span>Users</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/admin/courses" passHref>
                 <SidebarMenuButton>
@@ -89,7 +97,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <SidebarMenuItem>
               <Link href="/admin/tutors" passHref>
                 <SidebarMenuButton>
-                  <Users />
+                  <UsersIcon />
                   <span>Tutors</span>
                 </SidebarMenuButton>
               </Link>

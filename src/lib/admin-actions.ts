@@ -12,9 +12,10 @@ const adminApp = (): App => {
     
     // Check if the service account credentials are available in environment variables.
     // This is the standard way to provide credentials for local development.
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    const serviceAccountString = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    if (serviceAccountString) {
         try {
-            const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+            const serviceAccount = JSON.parse(serviceAccountString);
             return initializeApp({
                 credential: cert(serviceAccount),
             });
