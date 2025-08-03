@@ -10,29 +10,30 @@ const adminApp = (): App => {
         return getApp();
     }
     
+    // This environment variable is set in App Hosting but can be used for local dev
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       try {
-        const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
-         return initializeApp({
-            credential: cert(serviceAccount),
+        // We can pass the string directly to cert()
+        return initializeApp({
+            credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
         });
       } catch (e) {
-         console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS. Please ensure it's a valid JSON string or a path to a file.", e);
-         // Fallback to default credentials if parsing fails
+         console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS.", e);
       }
     }
-
-    if (process.env.SERVICE_ACCOUNT) {
-        try {
-            const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT);
-            return initializeApp({
-                credential: cert(serviceAccount),
-            });
-        } catch (e) {
-            console.error("Failed to parse SERVICE_ACCOUNT. Please ensure it's a valid JSON string.", e);
-        }
+    
+    // This is the fallback for local development if the above is not set.
+    // It uses the service account file in the root directory.
+    try {
+        const serviceAccount = require('../../language-2b5a4-firebase-adminsdk-fbsvc-2d3deb6e72.json');
+        return initializeApp({
+            credential: cert(serviceAccount),
+        });
+    } catch (e) {
+        console.error("Could not load local service account. Defaulting to application default credentials.", e);
     }
     
+    // This will use the Application Default Credentials (ADC) when deployed.
     return initializeApp();
 };
 
@@ -58,13 +59,13 @@ export async function listAllAuthUsers(): Promise<{ users: {uid: string, email: 
 
   } catch (error: any) {
     console.error('Error listing users:', error);
-    const errorMessage = "Could not list users. Ensure the service account has 'Firebase Authentication Admin' role.";
-    // Check for specific permission error codes
-    if (error.code === 'permission-denied' || error.message.includes('insufficient permissions')) {
+    // Check for specific permission error codes from Firebase Admin SDK
+    if (error.code === 'permission-denied' || error.code === 'app/insufficient-permission' || (error.message && error.message.includes('insufficient permissions'))) {
+        const errorMessage = "Could not list users. The service account does not have the 'Firebase Authentication Admin' role. Please follow the setup instructions.";
         return { users: [], error: errorMessage };
     }
-    // Re-throw other types of errors
-    throw new Error(error.message || "An unknown error occurred while listing users.");
+    // For other errors, return a generic message
+    return { users: [], error: error.message || "An unknown error occurred while listing users." };
   }
 }
 
@@ -83,6 +84,6 @@ export async function syncUserToFirestore(uid: string, email: string | null) {
         }, { merge: true });
     } catch (error) {
         console.error("Error syncing user to Firestore:", error);
-        // We don't throw here to avoid failing the signup process
+        // We don't throw here to avoid failing the signup process, but we could add more robust error handling
     }
 }

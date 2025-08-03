@@ -76,6 +76,7 @@ export default function Home() {
             layout="fill"
             objectFit="cover"
             className="opacity-20"
+            priority
           />
           <FloatingLetters />
         </div>
@@ -87,7 +88,7 @@ export default function Home() {
             {content.hero.subtitle}
           </p>
           <Link href="/courses">
-            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full text-lg px-10 py-6 animate-glow">
+            <Button size="lg" className="bg-white text-primary hover:bg-white/90 rounded-full text-lg px-10 py-6 animate-glow">
               {content.hero.buttonText}
             </Button>
           </Link>
@@ -119,7 +120,7 @@ export default function Home() {
         </div>
       </section>
       
-      <section id="features" className="w-full py-20 bg-background">
+      <section id="features" className="w-full py-20 bg-secondary/50">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-headline font-bold mb-12">{content.features.title}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -139,7 +140,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="why-us" className="w-full py-20 bg-secondary/50">
+      <section id="why-us" className="w-full py-20 bg-background">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
@@ -164,21 +165,21 @@ export default function Home() {
                 })}
               </div>
             </div>
-            <div>
+            <div className="relative w-full h-[500px] rounded-lg shadow-2xl overflow-hidden">
               <Image 
                 src={content.whyUs.imageUrl}
                 alt="Two people discussing and learning"
                 data-ai-hint="people learning"
-                width={600}
-                height={600}
-                className="rounded-lg shadow-2xl"
+                layout="fill"
+                objectFit="cover"
+                className="rounded-lg"
               />
             </div>
           </div>
         </div>
       </section>
 
-      <section id="testimonials" className="w-full py-20 bg-background">
+      <section id="testimonials" className="w-full py-20 bg-secondary/50">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-headline font-bold mb-12">{content.testimonials.title}</h2>
           <Carousel
@@ -192,7 +193,7 @@ export default function Home() {
               {TESTIMONIALS.map((testimonial, index) => (
                 <CarouselItem key={index} className="md:basis-1/2">
                   <div className="p-1">
-                    <Card className="h-full">
+                    <Card className="h-full bg-background">
                       <CardContent className="flex flex-col items-center text-center p-6 space-y-4">
                         <Avatar className="w-20 h-20">
                           <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
@@ -200,7 +201,7 @@ export default function Home() {
                         </Avatar>
                         <div className="flex">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-5 h-5 text-accent fill-current" />
+                            <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                           ))}
                         </div>
                         <p className="text-muted-foreground italic">&quot;{testimonial.quote}&quot;</p>
@@ -217,7 +218,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="w-full py-20 bg-primary text-center text-white">
+      <section className="w-full py-20 bg-primary text-center text-primary-foreground">
         <div className="container mx-auto">
           <h2 className="text-4xl font-headline font-bold mb-4">{content.cta.title}</h2>
           <p className="text-lg mb-8">{content.cta.subtitle}</p>
@@ -270,5 +271,3 @@ const HomepageSkeleton = () => (
     </div>
   </div>
 );
-
-    

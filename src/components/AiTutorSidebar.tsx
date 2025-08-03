@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,16 @@ export function AiTutorSidebar() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [messages]);
 
   const getBotResponse = (userInput: string): string => {
       const lowerInput = userInput.toLowerCase();
@@ -85,7 +96,7 @@ export function AiTutorSidebar() {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button
-            className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 animate-bounce"
+            className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90"
             size="icon"
           >
             <MessageSquare className="h-8 w-8" />
@@ -101,8 +112,8 @@ export function AiTutorSidebar() {
               Ask a question and I'll do my best to help!
             </SheetDescription>
           </SheetHeader>
-          <ScrollArea className="flex-grow p-6">
-            <div className="space-y-6">
+          <ScrollArea className="flex-grow" ref={scrollAreaRef}>
+            <div className="space-y-6 p-6">
               {messages.length === 0 && (
                  <div className="text-center text-muted-foreground p-8">
                     <p>Welcome! How can I help you today?</p>

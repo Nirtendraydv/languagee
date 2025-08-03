@@ -1,20 +1,18 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, Terminal } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { collection, getDocs, onSnapshot, query, setDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, setDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { USERS_PLACEHOLDER } from '@/lib/constants';
 import { listAllAuthUsers } from '@/lib/admin-actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
-import Link from 'next/link';
 
 type User = {
     uid: string;
@@ -38,70 +36,80 @@ export default function UsersPage() {
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
       setIsLoading(true);
       setPermissionError(null);
       try {
-          // 1. Fetch all users from Firebase Auth
+          // 1. Fetch all users from Firebase Auth using the server action
           const { users: authUsers, error: authError } = await listAllAuthUsers();
 
           if (authError) {
             setPermissionError(authError);
             setIsLoading(false);
+            setUsers([]);
             return;
           }
 
-          // If no users in Auth and placeholders exist, populate Firestore with placeholders
-          if (authUsers.length === 0 && USERS_PLACEHOLDER.length > 0) {
-              for (const user of USERS_PLACEHOLDER) {
-                  const userRef = doc(db, "users", user.uid);
-                  await setDoc(userRef, { email: user.email, uid: user.uid, createdAt: user.createdAt });
+          // If no users in Auth, check if Firestore is also empty, then populate with placeholders
+          if (authUsers.length === 0) {
+              const firestoreUsersSnapshot = await getDocs(collection(db, "users"));
+              if(firestoreUsersSnapshot.empty && USERS_PLACEHOLDER.length > 0) {
+                  for (const user of USERS_PLACEHOLDER) {
+                      const userRef = doc(db, "users", user.uid);
+                      // This is for placeholder data only, not for real user creation
+                      await setDoc(userRef, { email: user.email, uid: user.uid, createdAt: user.createdAt });
+                  }
               }
           }
           
-          // 2. Fetch all courses from Firestore
+          // 2. Fetch all courses from Firestore to map enrollments
           const coursesSnapshot = await getDocs(collection(db, "courses"));
           const courses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
 
-          // 3. Fetch all user documents from Firestore 'users' collection
+          // 3. Fetch all user documents from Firestore 'users' collection to get metadata like creation date
           const firestoreUsersSnapshot = await getDocs(collection(db, "users"));
           const firestoreUsers = firestoreUsersSnapshot.docs.map(doc => doc.data() as User);
 
-          // 4. Merge Auth users with Firestore data
+          // 4. Merge Auth users (as the source of truth) with Firestore data
           const usersWithCourses = authUsers.map(authUser => {
               if (!authUser) return null;
+              // Find matching user doc from firestore
               const firestoreUser = firestoreUsers.find(u => u.uid === authUser.uid);
+              // Find courses the user is enrolled in
               const enrolledCourses = courses.filter(course => course.enrolledUserIds?.includes(authUser.uid));
+              
               return { 
-                  ...authUser, 
+                  uid: authUser.uid,
+                  email: authUser.email || 'N/A', 
                   createdAt: firestoreUser?.createdAt,
                   enrolledCourses 
               };
-          }).filter(Boolean) as UserWithCourses[];
+          }).filter((user): user is UserWithCourses => user !== null);
           
           setUsers(usersWithCourses);
 
       } catch (error: any) {
           console.error("Error fetching data:", error);
-          toast({ variant: "destructive", title: "Error", description: "Failed to fetch user or course data." });
+          toast({ variant: "destructive", title: "Error", description: "An unexpected error occurred while fetching user or course data." });
       } finally {
           setIsLoading(false);
       }
-  };
+  }, [toast]);
 
 
   useEffect(() => {
     fetchData();
 
     // Set up a listener on the courses collection to refetch data if enrollments change
-    const unsubscribe = onSnapshot(collection(db, "courses"), (snapshot) => {
+    // This ensures the user's course list is up-to-date
+    const unsubscribe = onSnapshot(collection(db, "courses"), () => {
         if (!permissionError) {
           fetchData();
         }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [fetchData, permissionError]);
 
   return (
     <div className="p-8">
