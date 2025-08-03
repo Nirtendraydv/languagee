@@ -9,7 +9,7 @@ import { AiTutorSidebar } from '@/components/AiTutorSidebar';
 import { AuthProvider } from '@/components/AuthProvider';
 
 export const metadata: Metadata = {
-  title: 'English Excellence - Learn English Anywhere',
+  title: 'LingoSphere - Learn English Anywhere',
   description: 'An online English tutoring platform with a modern, interactive, and immersive learning experience.',
 };
 
@@ -48,3 +48,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    

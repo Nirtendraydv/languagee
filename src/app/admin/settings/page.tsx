@@ -16,6 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 const SETTINGS_DOC_ID = "homepageConfig";
 
 type HomepageContent = {
+    siteName: string;
     hero: {
         title: string;
         subtitle: string;
@@ -53,7 +54,8 @@ type HomepageContent = {
 };
 
 const defaultContent: HomepageContent = {
-    hero: { title: 'Learn English Anywhere 🌍', subtitle: 'Join English Excellence for an immersive, fun, and effective way to master English with our dedicated tutors.', buttonText: 'Start Learning Now', imageUrl: 'https://images.unsplash.com/photo-1453928582365-b6ad3332aab9?q=80&w=1920&auto=format&fit=crop' },
+    siteName: 'LingoSphere',
+    hero: { title: 'Learn English Anywhere 🌍', subtitle: 'Join LingoSphere for an immersive, fun, and effective way to master English with our dedicated tutors.', buttonText: 'Start Learning Now', imageUrl: 'https://images.unsplash.com/photo-1453928582365-b6ad3332aab9?q=80&w=1920&auto=format&fit=crop' },
     howItWorks: {
         title: 'How It Works',
         subtitle: 'Three simple steps to start your English learning journey.',
@@ -73,7 +75,7 @@ const defaultContent: HomepageContent = {
         ],
     },
     whyUs: {
-        title: 'Why Choose English Excellence?',
+        title: 'Why Choose LingoSphere?',
         subtitle: 'We provide a comprehensive and engaging learning experience designed for success. Our unique approach sets us apart.',
         imageUrl: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=600&auto=format&fit=crop',
         points: [
@@ -83,8 +85,8 @@ const defaultContent: HomepageContent = {
         ],
     },
     testimonials: { title: 'What Our Students Say' },
-    cta: { title: 'Ready to Start Your Journey?', subtitle: 'Join thousands of students and unlock your potential with English Excellence.', buttonText: 'Explore Courses' },
-    footer: { address: '123 Learning Lane, Education City, USA', email: 'contact@englishexcellence.com', phone: '+1 (555) 123-4567' }
+    cta: { title: 'Ready to Start Your Journey?', subtitle: 'Join thousands of students and unlock your potential with LingoSphere.', buttonText: 'Explore Courses' },
+    footer: { address: '123 Learning Lane, Education City, USA', email: 'contact@lingosphere.com', phone: '+1 (555) 123-4567' }
 };
 
 export default function AdminSettingsPage() {
@@ -137,9 +139,12 @@ export default function AdminSettingsPage() {
         }
     }
     
-    const handleInputChange = (section: keyof HomepageContent, field: string, value: string) => {
+    const handleInputChange = (section: keyof HomepageContent | 'siteName', field: string, value: string) => {
         setContent(prev => {
             if (!prev) return null;
+            if (section === 'siteName') {
+                return { ...prev, siteName: value };
+            }
             return {
                 ...prev,
                 [section]: {
@@ -158,7 +163,9 @@ export default function AdminSettingsPage() {
             const newContent = JSON.parse(JSON.stringify(prev));
     
             // Update the specific value
-            newContent[sectionKey][arrayKey][index][field] = value;
+            if (newContent[sectionKey] && newContent[sectionKey][arrayKey] && newContent[sectionKey][arrayKey][index]) {
+                newContent[sectionKey][arrayKey][index][field] = value;
+            }
     
             return newContent;
         });
@@ -181,8 +188,21 @@ export default function AdminSettingsPage() {
                 </Button>
             </div>
             <form onSubmit={handleSave}>
-                <Accordion type="multiple" defaultValue={['hero', 'footer']} className="space-y-4">
+                <Accordion type="multiple" defaultValue={['site', 'hero', 'footer']} className="space-y-4">
                     
+                    {/* Site Details Section */}
+                    <AccordionItem value="site">
+                        <AccordionTrigger className="text-xl font-headline">Site Details</AccordionTrigger>
+                        <AccordionContent>
+                             <CardContent className="space-y-4 pt-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="siteName">Site Name</Label>
+                                    <Input id="siteName" value={content.siteName} onChange={e => handleInputChange('siteName', 'siteName', e.target.value)} />
+                                </div>
+                            </CardContent>
+                        </AccordionContent>
+                    </AccordionItem>
+
                     {/* Hero Section */}
                     <AccordionItem value="hero">
                         <AccordionTrigger className="text-xl font-headline">Hero Section</AccordionTrigger>

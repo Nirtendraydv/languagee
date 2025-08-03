@@ -15,7 +15,7 @@ const ADMIN_EMAIL = 'admin@example.com';
 
 export default function Header() {
   const [isSheetOpen, setSheetOpen] = useState(false);
-  const [siteName, setSiteName] = useState("English Excellence");
+  const [siteName, setSiteName] = useState("LingoSphere");
   const { user } = useAuth();
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function Header() {
     const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
-            setSiteName(data.hero?.title || "English Excellence");
+            setSiteName(data.siteName || "LingoSphere");
         }
     }, (error) => {
         console.error("Error fetching site name:", error);
@@ -143,3 +143,5 @@ export default function Header() {
     </header>
   );
 }
+
+    

@@ -44,7 +44,7 @@ type FooterContent = {
 
 export default function Footer() {
     const { toast } = useToast();
-    const [siteName, setSiteName] = useState("English Excellence");
+    const [siteName, setSiteName] = useState("LingoSphere");
     const [footerContent, setFooterContent] = useState<FooterContent>({ address: '', email: '', phone: '' });
 
     const form = useForm<z.infer<typeof newsletterFormSchema>>({
@@ -61,7 +61,7 @@ export default function Footer() {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 setFooterContent(data.footer);
-                setSiteName(data.hero?.title || "English Excellence"); 
+                setSiteName(data.siteName || "LingoSphere"); 
             } else {
                 console.log("No such document in settings!");
             }
@@ -149,3 +149,5 @@ export default function Footer() {
         </footer>
     )
 }
+
+    
