@@ -1,4 +1,5 @@
 
+
 export const COURSES_PLACEHOLDER = [
   {
     id: '1',
@@ -10,9 +11,10 @@ export const COURSES_PLACEHOLDER = [
     badge: 'Free Trial',
     image: 'https://images.unsplash.com/photo-1543165794-803225536569?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'abc blocks',
-    resourceLink: 'https://meet.google.com/new',
-    courseType: 'multi-session',
-    courseStructure: '8 sessions over 4 weeks',
+    modules: [
+        { title: "Introduction to Greetings", description: "Learn how to greet people and introduce yourself.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+        { title: "The Alphabet and Pronunciation", description: "Master the English alphabet and basic sounds.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+    ],
   },
   {
     id: '2',
@@ -24,9 +26,10 @@ export const COURSES_PLACEHOLDER = [
     badge: 'Popular',
     image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'people talking',
-    resourceLink: 'https://meet.google.com/new',
-    courseType: 'multi-session',
-    courseStructure: '10-session package',
+    modules: [
+        { title: "Everyday Conversations", description: "Practice common scenarios like ordering food and making appointments.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+        { title: "Expressing Opinions", description: "Learn phrases to share your thoughts and opinions politely.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+    ],
   },
   {
     id: '3',
@@ -38,9 +41,9 @@ export const COURSES_PLACEHOLDER = [
     badge: '',
     image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=600&auto=format&fit=crop',
     dataAiHint: 'business meeting',
-    resourceLink: 'https://meet.google.com/new',
-    courseType: 'single',
-    courseStructure: 'Intensive 2-hour workshop',
+    modules: [
+        { title: "Mastering Meetings", description: "Learn vocabulary and etiquette for effective participation in business meetings.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+    ],
   },
 ];
 
@@ -154,5 +157,3 @@ export const AI_TUTOR_COURSES_CONTEXT = [
     description: 'Deep dive into complex grammar topics to write and speak with precision.',
   },
 ];
-
-    

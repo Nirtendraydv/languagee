@@ -8,6 +8,12 @@ import CourseCard from '@/components/CourseCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { COURSES_PLACEHOLDER } from '@/lib/constants';
 
+type Module = {
+  title: string;
+  description: string;
+  videoLink: string;
+};
+
 type Course = {
   id: string;
   title: string;
@@ -18,7 +24,7 @@ type Course = {
   badge?: string;
   image: string;
   dataAiHint: string;
-  liveClassLink: string;
+  modules: Module[];
 };
 
 export default function CoursesPage() {

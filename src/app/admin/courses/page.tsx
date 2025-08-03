@@ -9,14 +9,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw, Link2, Youtube, Package, Package2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw, Link2, Youtube, Package, Package2, GripVertical, Plus, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { COURSES_PLACEHOLDER } from '@/lib/constants';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type Module = {
+  title: string;
+  description: string;
+  videoLink: string;
+};
 
 type Course = {
   id: string;
@@ -28,17 +33,18 @@ type Course = {
   badge?: string;
   image: string;
   dataAiHint?: string;
-  resourceLink: string;
-  courseType: 'single' | 'multi-session';
-  courseStructure: string;
+  modules: Module[];
 };
 
 const defaultCourse: Partial<Course> = {
+    title: '',
+    description: '',
+    level: '',
+    ageGroup: '',
+    goal: '',
     image: 'https://placehold.co/600x400.png',
     dataAiHint: 'education',
-    resourceLink: 'https://meet.google.com/new',
-    courseType: 'single',
-    courseStructure: '1 session'
+    modules: [{ title: '', description: '', videoLink: '' }],
 };
 
 export default function AdminCoursesPage() {
@@ -80,10 +86,15 @@ export default function AdminCoursesPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentCourse) return;
+    if (!currentCourse || !currentCourse.title) return;
 
     try {
         const courseData = { ...currentCourse };
+        
+        // Ensure modules is an array
+        if (!Array.isArray(courseData.modules)) {
+            courseData.modules = [];
+        }
 
         if (currentCourse.id) {
             // Update existing course
@@ -92,9 +103,8 @@ export default function AdminCoursesPage() {
             await updateDoc(courseRef, updateData);
             toast({ title: "Success", description: "Course updated successfully." });
         } else {
-            // Add new course, ensuring all required fields have defaults
-            const newCourseData = { ...defaultCourse, ...courseData };
-            await addDoc(collection(db, "courses"), newCourseData);
+            // Add new course
+            await addDoc(collection(db, "courses"), courseData);
             toast({ title: "Success", description: "Course added successfully." });
         }
 
@@ -103,7 +113,7 @@ export default function AdminCoursesPage() {
         setCurrentCourse(null);
     } catch (error) {
         console.error("Error saving course:", error);
-        toast({ variant: "destructive", title: "Error", description: "Failed to save course." });
+        toast({ variant: "destructive", title: "Error", description: `Failed to save course. ${error instanceof Error ? error.message : ''}` });
     }
 };
 
@@ -125,9 +135,33 @@ export default function AdminCoursesPage() {
     setCurrentCourse(prev => prev ? { ...prev, [name]: value } : null);
   };
   
-  const handleSelectChange = (name: string, value: string) => {
-      setCurrentCourse(prev => prev ? { ...prev, [name]: value } : null);
-  }
+  const handleModuleChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCurrentCourse(prev => {
+      if (!prev || !prev.modules) return prev;
+      const newModules = [...prev.modules];
+      newModules[index] = { ...newModules[index], [name]: value };
+      return { ...prev, modules: newModules };
+    });
+  };
+
+  const addModule = () => {
+    setCurrentCourse(prev => {
+        if (!prev) return prev;
+        const newModules = prev.modules ? [...prev.modules] : [];
+        newModules.push({ title: '', description: '', videoLink: '' });
+        return { ...prev, modules: newModules };
+    });
+  };
+
+  const removeModule = (index: number) => {
+    setCurrentCourse(prev => {
+      if (!prev || !prev.modules) return prev;
+      const newModules = prev.modules.filter((_, i) => i !== index);
+      return { ...prev, modules: newModules };
+    });
+  };
+
 
   return (
     <div className="p-8">
@@ -145,83 +179,84 @@ export default function AdminCoursesPage() {
                 Add New Course
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                 <DialogTitle>{currentCourse?.id ? "Edit Course" : "Add New Course"}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSave} className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input id="title" name="title" value={currentCourse?.title || ''} onChange={handleFormChange} required />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" name="description" value={currentCourse?.description || ''} onChange={handleFormChange} required />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                {currentCourse && (
+                    <form onSubmit={handleSave} className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="level">Level</Label>
-                        <Input id="level" name="level" value={currentCourse?.level || ''} onChange={handleFormChange} required />
+                        <Label htmlFor="title">Title</Label>
+                        <Input id="title" name="title" value={currentCourse.title || ''} onChange={handleFormChange} required />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="ageGroup">Age Group</Label>
-                        <Input id="ageGroup" name="ageGroup" value={currentCourse?.ageGroup || ''} onChange={handleFormChange} required />
+                        <Label htmlFor="description">Overall Description</Label>
+                        <Textarea id="description" name="description" value={currentCourse.description || ''} onChange={handleFormChange} required />
                     </div>
-                </div>
 
-                 <div className="grid grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="courseType">Course Type</Label>
-                         <Select name="courseType" value={currentCourse?.courseType || 'single'} onValueChange={(value) => handleSelectChange('courseType', value)}>
-                             <SelectTrigger>
-                                 <SelectValue placeholder="Select course type" />
-                             </SelectTrigger>
-                             <SelectContent>
-                                 <SelectItem value="single"><div className="flex items-center gap-2"><Package size={16}/> Single Session</div></SelectItem>
-                                 <SelectItem value="multi-session"><div className="flex items-center gap-2"><Package2 size={16}/> Multi-session</div></SelectItem>
-                             </SelectContent>
-                         </Select>
-                     </div>
-                     <div className="space-y-2">
-                         <Label htmlFor="courseStructure">Course Structure</Label>
-                         <Input id="courseStructure" name="courseStructure" value={currentCourse?.courseStructure || ''} onChange={handleFormChange} placeholder="e.g., 4 modules, 1-hour each"/>
-                     </div>
-                </div>
-
-
-                <div className="space-y-2">
-                    <Label htmlFor="goal">Goal</Label>
-                    <Input id="goal" name="goal" value={currentCourse?.goal || ''} onChange={handleFormChange} required />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="resourceLink">Class/Video Link</Label>
-                     <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground"><Link2 size={16}/></span>
-                        <Input id="resourceLink" name="resourceLink" value={currentCourse?.resourceLink || ''} onChange={handleFormChange} required placeholder="https://meet.google.com/... or https://youtube.com/..." />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="level">Level</Label>
+                            <Input id="level" name="level" value={currentCourse.level || ''} onChange={handleFormChange} required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="ageGroup">Age Group</Label>
+                            <Input id="ageGroup" name="ageGroup" value={currentCourse.ageGroup || ''} onChange={handleFormChange} required />
+                        </div>
                     </div>
-                </div>
 
-                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="image">Image URL</Label>
-                        <Input id="image" name="image" value={currentCourse?.image || ''} onChange={handleFormChange} required />
+                        <Label htmlFor="goal">Goal</Label>
+                        <Input id="goal" name="goal" value={currentCourse.goal || ''} onChange={handleFormChange} required />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="dataAiHint">Image AI Hint</Label>
-                        <Input id="dataAiHint" name="dataAiHint" value={currentCourse?.dataAiHint || ''} onChange={handleFormChange} />
+                   
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="image">Image URL</Label>
+                            <Input id="image" name="image" value={currentCourse.image || ''} onChange={handleFormChange} required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="dataAiHint">Image AI Hint</Label>
+                            <Input id="dataAiHint" name="dataAiHint" value={currentCourse.dataAiHint || ''} onChange={handleFormChange} />
+                        </div>
                     </div>
-                </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="badge">Badge (optional)</Label>
-                    <Input id="badge" name="badge" value={currentCourse?.badge || ''} onChange={handleFormChange} placeholder="e.g., Popular, New" />
-                </div>
-                
-                <div className="flex justify-end pt-4">
-                  <Button type="submit">Save Course</Button>
-                </div>
-                </form>
+                    <div className="space-y-2">
+                        <Label htmlFor="badge">Badge (optional)</Label>
+                        <Input id="badge" name="badge" value={currentCourse.badge || ''} onChange={handleFormChange} placeholder="e.g., Popular, New" />
+                    </div>
+                    
+                    <div className="space-y-4 pt-4 border-t">
+                        <h3 className="text-lg font-semibold">Course Modules</h3>
+                        {currentCourse.modules?.map((module, index) => (
+                            <div key={index} className="space-y-3 p-4 border rounded-lg relative">
+                                <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeModule(index)}>
+                                    <X className="h-4 w-4"/>
+                                </Button>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`module-title-${index}`}>Module {index + 1} Title</Label>
+                                    <Input id={`module-title-${index}`} name="title" value={module.title} onChange={(e) => handleModuleChange(index, e)} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`module-description-${index}`}>Module Description</Label>
+                                    <Textarea id={`module-description-${index}`} name="description" value={module.description} onChange={(e) => handleModuleChange(index, e)} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`module-videoLink-${index}`}>Module Video Link</Label>
+                                    <Input id={`module-videoLink-${index}`} name="videoLink" value={module.videoLink} onChange={(e) => handleModuleChange(index, e)} required placeholder="https://youtube.com/... or https://drive.google.com/..." />
+                                </div>
+                            </div>
+                        ))}
+                         <Button type="button" variant="outline" onClick={addModule}>
+                            <Plus className="mr-2 h-4 w-4"/> Add Module
+                        </Button>
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                      <Button type="submit">Save Course</Button>
+                    </div>
+                    </form>
+                )}
             </DialogContent>
             </Dialog>
          </div>
@@ -243,7 +278,7 @@ export default function AdminCoursesPage() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Level</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Modules</TableHead>
                   <TableHead>Goal</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -256,7 +291,7 @@ export default function AdminCoursesPage() {
                       <Badge variant="outline">{course.level}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={course.courseType === 'single' ? 'secondary' : 'default'} className="capitalize">{course.courseType}</Badge>
+                      <Badge variant={'secondary'} className="capitalize">{course.modules?.length || 0} Modules</Badge>
                     </TableCell>
                     <TableCell>{course.goal}</TableCell>
                     <TableCell>
@@ -292,5 +327,3 @@ export default function AdminCoursesPage() {
     </div>
   );
 }
-
-    

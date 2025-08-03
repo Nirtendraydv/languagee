@@ -9,10 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star, Package, Package2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star, Tv, FileVideo, Youtube } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import CourseCard from '@/components/CourseCard';
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
+
+type Module = {
+  title: string;
+  description: string;
+  videoLink: string;
+};
 
 type Course = {
   id: string;
@@ -23,9 +30,7 @@ type Course = {
   description: string;
   badge?: string;
   image: string;
-  resourceLink: string;
-  courseType: 'single' | 'multi-session';
-  courseStructure: string;
+  modules: Module[];
 };
 
 type Tutor = {
@@ -109,6 +114,17 @@ export default function CourseDetailPage() {
       </div>
     );
   }
+  
+  const getLinkIcon = (link: string) => {
+    if (link.includes('youtube.com') || link.includes('youtu.be')) {
+      return <Youtube className="mr-2 text-red-500" />;
+    }
+    if (link.includes('drive.google.com')) {
+      return <FileVideo className="mr-2 text-blue-500" />;
+    }
+    return <LinkIcon className="mr-2" />;
+  };
+
 
   return (
     <div className="bg-background gradient-bg">
@@ -146,46 +162,53 @@ export default function CourseDetailPage() {
                     <Target size={20} className="text-primary"/>
                     <span className="font-semibold">{course.goal}</span>
                 </div>
-                 <div className="flex items-center gap-2" title="Course Type">
-                    {course.courseType === 'single' ? <Package size={20} className="text-primary"/> : <Package2 size={20} className="text-primary"/>}
-                    <span className="font-semibold capitalize">{course.courseType.replace('-', ' ')}</span>
+                <div className="flex items-center gap-2" title="Modules">
+                    <Tv size={20} className="text-primary"/>
+                    <span className="font-semibold">{course.modules?.length || 0} Modules</span>
                 </div>
             </div>
 
-            <p className="text-lg text-foreground leading-relaxed mb-8">{course.description} This course provides in-depth training to help you achieve your goals effectively.</p>
+            <p className="text-lg text-foreground leading-relaxed mb-8">{course.description}</p>
 
             <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
-                <h3 className="text-2xl font-bold font-headline mb-4">What you'll learn</h3>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-inside list-disc text-muted-foreground">
-                    <li>Core concepts of {course.goal}.</li>
-                    <li>Advanced conversational techniques.</li>
-                    <li>Practical application in real-life scenarios.</li>
-                    <li>Pronunciation and accent reduction.</li>
-                    <li>Effective communication strategies.</li>
-                    <li>Cultural nuances in English.</li>
-                </ul>
+                <h3 className="text-2xl font-bold font-headline mb-4">Course Content</h3>
+                 {course.modules && course.modules.length > 0 ? (
+                    <Accordion type="single" collapsible className="w-full">
+                        {course.modules.map((module, index) => (
+                             <AccordionItem key={index} value={`item-${index}`}>
+                                <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                                    <div className="flex items-center">
+                                        <span className="text-primary mr-4">{(index + 1).toString().padStart(2, '0')}</span>
+                                        {module.title}
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="space-y-4">
+                                    <p className="text-muted-foreground">{module.description}</p>
+                                     <a href={module.videoLink} target="_blank" rel="noopener noreferrer">
+                                        <Button size="sm" variant="outline">
+                                            {getLinkIcon(module.videoLink)}
+                                            Watch Video
+                                        </Button>
+                                    </a>
+                                </AccordionContent>
+                             </AccordionItem>
+                        ))}
+                    </Accordion>
+                 ) : (
+                    <p className="text-muted-foreground">No modules available for this course yet. Please check back later!</p>
+                 )}
             </div>
             
-             <div className="bg-card p-6 rounded-lg shadow-sm">
-                <h3 className="text-2xl font-bold font-headline mb-4">Course Structure</h3>
-                <p className="text-muted-foreground">{course.courseStructure}</p>
-            </div>
           </div>
 
           <aside className="md:col-span-1">
             <div className="sticky top-24">
               <Card className="shadow-xl">
                 <CardHeader>
-                  <CardTitle className="font-headline text-2xl">Ready to Start?</CardTitle>
+                  <CardTitle className="font-headline text-2xl">Ready to Level Up?</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <a href={course.resourceLink} target="_blank" rel="noopener noreferrer">
-                    <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-6 mb-4">
-                      <LinkIcon className="mr-2" />
-                      Join Class / Watch Video
-                    </Button>
-                  </a>
-                   <p className="text-muted-foreground mb-4 text-center text-sm">Or book a lesson with a tutor:</p>
+                   <p className="text-muted-foreground mb-4 text-sm">Book a one-on-one lesson with our expert tutors to practice what you've learned.</p>
                   <div className="flex flex-col gap-4 mb-6">
                     {tutors.slice(0, 2).map(tutor => (
                       <div key={tutor.id} className="flex items-center gap-3">
@@ -229,5 +252,3 @@ export default function CourseDetailPage() {
     </div>
   );
 }
-
-    
