@@ -12,6 +12,7 @@ import { UserPlus } from 'lucide-react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
+import { syncUserToFirestore } from '@/lib/admin-actions';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -25,7 +26,11 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Sync user to our Firestore collection
+      await syncUserToFirestore(userCredential.user.uid, userCredential.user.email);
+
       toast({
         title: "Account Created",
         description: "You have been successfully signed up!",

@@ -20,7 +20,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronsUpDown } from "lucide-react"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { listAllUsers } from '@/lib/admin-actions';
 
 type Module = {
   title: string;
@@ -63,18 +62,23 @@ export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentCourse, setCurrentCourse] = useState<Partial<Course> | null>(null);
   const [openUserSelect, setOpenUserSelect] = useState(false);
   const { toast } = useToast();
 
   const fetchUsers = async () => {
+    setIsUsersLoading(true);
     try {
-        const fetchedUsers = await listAllUsers();
-        setUsers(fetchedUsers);
+        const querySnapshot = await getDocs(collection(db, "users"));
+        const usersList = querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
+        setUsers(usersList);
     } catch (error) {
         console.error("Error fetching users:", error);
         toast({ variant: "destructive", title: "Error", description: "Failed to fetch users." });
+    } finally {
+        setIsUsersLoading(false);
     }
   };
 
@@ -220,10 +224,11 @@ export default function AdminCoursesPage() {
                                 role="combobox"
                                 aria-expanded={openUserSelect}
                                 className="w-full justify-between"
+                                disabled={isUsersLoading}
                                 >
-                                {currentCourse.enrolledUserIds && currentCourse.enrolledUserIds.length > 0
+                                {isUsersLoading ? "Loading users..." : (currentCourse.enrolledUserIds && currentCourse.enrolledUserIds.length > 0
                                     ? `${currentCourse.enrolledUserIds.length} user(s) selected`
-                                    : "Select users..."}
+                                    : "Select users...")}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>

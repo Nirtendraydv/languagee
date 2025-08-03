@@ -15,6 +15,7 @@ export const COURSES_PLACEHOLDER = [
         { title: "Introduction to Greetings", description: "Learn how to greet people and introduce yourself.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
         { title: "The Alphabet and Pronunciation", description: "Master the English alphabet and basic sounds.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
     ],
+    enrolledUserIds: [],
   },
   {
     id: '2',
@@ -30,6 +31,7 @@ export const COURSES_PLACEHOLDER = [
         { title: "Everyday Conversations", description: "Practice common scenarios like ordering food and making appointments.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
         { title: "Expressing Opinions", description: "Learn phrases to share your thoughts and opinions politely.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
     ],
+    enrolledUserIds: [],
   },
   {
     id: '3',
@@ -44,6 +46,7 @@ export const COURSES_PLACEHOLDER = [
     modules: [
         { title: "Mastering Meetings", description: "Learn vocabulary and etiquette for effective participation in business meetings.", videoLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
     ],
+    enrolledUserIds: [],
   },
 ];
 
@@ -73,6 +76,20 @@ export const TUTORS_PLACEHOLDER = [
     specialties: ['Business English', 'Advanced Grammar', 'Presentation Skills', 'Negotiation'],
   },
 ];
+
+export const USERS_PLACEHOLDER = [
+  {
+    uid: 'user1@example.com',
+    email: 'user1@example.com',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    uid: 'user2@example.com',
+    email: 'user2@example.com',
+    createdAt: new Date().toISOString(),
+  }
+];
+
 
 export const TESTIMONIALS = [
   {

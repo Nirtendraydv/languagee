@@ -7,14 +7,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { listAllUsers } from '@/lib/admin-actions';
-import { collection, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
+import { USERS_PLACEHOLDER } from '@/lib/constants';
 
 type User = {
     uid: string;
     email: string;
+    createdAt?: string;
 };
 
 type Course = {
@@ -35,7 +36,23 @@ export default function UsersPage() {
   const fetchData = async () => {
       setIsLoading(true);
       try {
-          const fetchedUsers = await listAllUsers();
+          // Fetch users from the 'users' collection in Firestore
+          const usersSnapshot = await getDocs(collection(db, "users"));
+          
+          let fetchedUsers: User[];
+
+          if (usersSnapshot.empty) {
+              // Auto-populate users if the collection is empty
+              for (const user of USERS_PLACEHOLDER) {
+                  await addDoc(collection(db, "users"), user);
+              }
+              const seededSnapshot = await getDocs(collection(db, "users"));
+              fetchedUsers = seededSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
+          } else {
+              fetchedUsers = usersSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
+          }
+          
+
           const coursesSnapshot = await getDocs(collection(db, "courses"));
           const courses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
 

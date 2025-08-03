@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star, Tv, FileVideo, Youtube, Lock } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star, Tv, FileVideo, Youtube, Lock, Sparkles } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import CourseCard from '@/components/CourseCard';
 import { db } from '@/lib/firebase';
@@ -54,9 +54,8 @@ export default function CourseDetailPage() {
   const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
-    if (isAuthLoading) return; // Wait for auth state to be determined
-
     const fetchCourseData = async () => {
+      if (!courseId) return;
       setIsLoading(true);
       try {
         const courseRef = doc(db, 'courses', courseId);
@@ -65,15 +64,9 @@ export default function CourseDetailPage() {
         if (courseSnap.exists()) {
           const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
           setCourse(courseData);
-
+          
           const enrolled = courseData.enrolledUserIds?.includes(user?.uid || '') || false;
           setIsEnrolled(enrolled);
-          
-          if (!enrolled) {
-             // Optional: You might want to redirect or just show a lock screen
-             console.log("User not enrolled in this course.");
-          }
-
 
           const relatedQuery = query(
             collection(db, 'courses'),
@@ -82,7 +75,7 @@ export default function CourseDetailPage() {
             limit(3)
           );
           const relatedSnapshot = await getDocs(relatedQuery);
-          const relatedList = relatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course)).filter(c => c.enrolledUserIds?.includes(user?.uid || ''));
+          const relatedList = relatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
           setRelatedCourses(relatedList);
 
         } else {
@@ -100,10 +93,8 @@ export default function CourseDetailPage() {
       }
     };
     
-    if (courseId) {
-        fetchCourseData();
-    }
-  }, [courseId, user, isAuthLoading, router]);
+    fetchCourseData();
+  }, [courseId, user]);
 
 
   if (isLoading || isAuthLoading) {
@@ -122,22 +113,6 @@ export default function CourseDetailPage() {
           <Button variant="link" className="mt-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Courses
-          </Button>
-        </Link>
-      </div>
-    );
-  }
-
-  if (!isEnrolled) {
-     return (
-      <div className="container mx-auto py-20 text-center flex flex-col items-center justify-center h-[80vh]">
-        <Lock className="h-16 w-16 text-destructive mb-4" />
-        <h1 className="text-4xl font-bold">Access Denied</h1>
-        <p className="text-muted-foreground mt-2">You are not enrolled in this course.</p>
-        <Link href="/courses">
-          <Button variant="link" className="mt-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to My Courses
           </Button>
         </Link>
       </div>
@@ -202,11 +177,12 @@ export default function CourseDetailPage() {
             <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
                 <h3 className="text-2xl font-bold font-headline mb-4">Course Content</h3>
                  {course.modules && course.modules.length > 0 ? (
-                    <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
+                    <Accordion type="single" collapsible className="w-full" defaultValue={isEnrolled ? "item-0" : ""}>
                         {course.modules.map((module, index) => (
-                             <AccordionItem key={index} value={`item-${index}`}>
-                                <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                             <AccordionItem key={index} value={`item-${index}`} disabled={!isEnrolled}>
+                                <AccordionTrigger className="text-lg font-semibold hover:no-underline disabled:opacity-70 disabled:cursor-not-allowed">
                                     <div className="flex items-center">
+                                        {!isEnrolled && <Lock className="w-4 h-4 mr-3 shrink-0" />}
                                         <span className="text-primary mr-4">{(index + 1).toString().padStart(2, '0')}</span>
                                         {module.title}
                                     </div>
@@ -233,35 +209,55 @@ export default function CourseDetailPage() {
           <aside className="md:col-span-1">
             <div className="sticky top-24">
               <Card className="shadow-xl">
-                <CardHeader>
-                  <CardTitle className="font-headline text-2xl">Ready to Level Up?</CardTitle>
-                </CardHeader>
-                <CardContent>
-                   <p className="text-muted-foreground mb-4 text-sm">Book a one-on-one lesson with our expert tutors to practice what you've learned.</p>
-                  <div className="flex flex-col gap-4 mb-6">
-                    {tutors.slice(0, 2).map(tutor => (
-                      <div key={tutor.id} className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={tutor.avatar} alt={tutor.name} />
-                          <AvatarFallback>{tutor.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-bold">{tutor.name}</p>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Star className="w-4 h-4 text-accent fill-current" />
-                            {tutor.rating}
-                          </div>
+                 {isEnrolled ? (
+                    <>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-2xl">Ready to Level Up?</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground mb-4 text-sm">Book a one-on-one lesson with our expert tutors to practice what you've learned.</p>
+                        <div className="flex flex-col gap-4 mb-6">
+                            {tutors.slice(0, 2).map(tutor => (
+                            <div key={tutor.id} className="flex items-center gap-3">
+                                <Avatar className="w-12 h-12">
+                                <AvatarImage src={tutor.avatar} alt={tutor.name} />
+                                <AvatarFallback>{tutor.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                <p className="font-bold">{tutor.name}</p>
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <Star className="w-4 h-4 text-accent fill-current" />
+                                    {tutor.rating}
+                                </div>
+                                </div>
+                            </div>
+                            ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Link href="/tutors" className="w-full">
-                    <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg py-6">
-                      <Calendar className="mr-2" />
-                      Meet Our Tutors
-                    </Button>
-                  </Link>
-                </CardContent>
+                        <Link href="/tutors" className="w-full">
+                            <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg py-6">
+                            <Calendar className="mr-2" />
+                            Meet Our Tutors
+                            </Button>
+                        </Link>
+                    </CardContent>
+                    </>
+                 ) : (
+                    <>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-2xl">Start Learning Now</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground mb-4 text-sm">Enroll in this course to gain access to all modules and video content.</p>
+                         <Link href={user ? "/contact?course_request=true" : "/signup"} className="w-full">
+                            <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg py-6">
+                            <Sparkles className="mr-2" />
+                            {user ? 'Request Access' : 'Sign Up to Enroll'}
+                            </Button>
+                        </Link>
+                        <p className="text-xs text-muted-foreground text-center mt-2">An admin will grant you access after your request.</p>
+                    </CardContent>
+                    </>
+                 )}
               </Card>
             </div>
           </aside>
@@ -281,5 +277,3 @@ export default function CourseDetailPage() {
     </div>
   );
 }
-
-    
