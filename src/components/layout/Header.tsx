@@ -1,10 +1,11 @@
+
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Globe } from "lucide-react";
+import { Menu, Globe, UserCog } from "lucide-react";
 import NavItem from "./NavItem";
 
 export default function Header() {
@@ -36,6 +37,13 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <Button variant="ghost" className="hidden md:flex">Log In</Button>
           <Button className="hidden md:flex bg-primary hover:bg-primary/90">Sign Up</Button>
+          
+          <Link href="/admin/login">
+            <Button variant="outline" size="icon" className="hidden md:flex">
+              <UserCog className="h-5 w-5" />
+              <span className="sr-only">Admin Login</span>
+            </Button>
+          </Link>
 
           <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild className="md:hidden">
@@ -61,6 +69,13 @@ export default function Header() {
                         {link.label}
                     </Link>
                 ))}
+                 <Link
+                    href="/admin/login"
+                    onClick={() => setSheetOpen(false)}
+                    className="text-lg font-medium text-foreground hover:text-primary transition-colors"
+                >
+                    Admin
+                </Link>
                 </nav>
                 <div className="flex flex-col gap-3 mt-auto">
                     <Button variant="ghost">Log In</Button>
