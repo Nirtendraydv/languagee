@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { collection, getDocs, onSnapshot, query, addDoc } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, addDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { USERS_PLACEHOLDER } from '@/lib/constants';
@@ -36,23 +36,21 @@ export default function UsersPage() {
   const fetchData = async () => {
       setIsLoading(true);
       try {
-          // Fetch users from the 'users' collection in Firestore
-          const usersSnapshot = await getDocs(collection(db, "users"));
+          const usersQuery = query(collection(db, "users"));
+          const usersSnapshot = await getDocs(usersQuery);
           
           let fetchedUsers: User[];
 
           if (usersSnapshot.empty) {
-              // Auto-populate users if the collection is empty
               for (const user of USERS_PLACEHOLDER) {
                   await addDoc(collection(db, "users"), user);
               }
-              const seededSnapshot = await getDocs(collection(db, "users"));
+              const seededSnapshot = await getDocs(usersQuery);
               fetchedUsers = seededSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
           } else {
               fetchedUsers = usersSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
           }
           
-
           const coursesSnapshot = await getDocs(collection(db, "courses"));
           const courses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
 
@@ -74,7 +72,6 @@ export default function UsersPage() {
   useEffect(() => {
     fetchData();
 
-    // Listen for real-time updates on courses to reflect enrollment changes
     const unsubscribe = onSnapshot(collection(db, "courses"), (snapshot) => {
         fetchData(); 
     });
