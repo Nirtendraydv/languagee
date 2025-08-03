@@ -51,6 +51,11 @@ type HomepageContent = {
         email: string;
         phone: string;
     };
+    socials: {
+        twitter: string;
+        facebook: string;
+        instagram: string;
+    };
 };
 
 const defaultContent: HomepageContent = {
@@ -86,7 +91,8 @@ const defaultContent: HomepageContent = {
     },
     testimonials: { title: 'What Our Students Say' },
     cta: { title: 'Ready to Start Your Journey?', subtitle: 'Join thousands of students and unlock your potential with LingoSphere.', buttonText: 'Explore Courses' },
-    footer: { address: '123 Learning Lane, Education City, USA', email: 'contact@lingosphere.com', phone: '+1 (555) 123-4567' }
+    footer: { address: '123 Learning Lane, Education City, USA', email: 'contact@lingosphere.com', phone: '+1 (555) 123-4567' },
+    socials: { twitter: 'https://twitter.com', facebook: 'https://facebook.com', instagram: 'https://instagram.com' }
 };
 
 export default function AdminSettingsPage() {
@@ -99,9 +105,11 @@ export default function AdminSettingsPage() {
     useEffect(() => {
         const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
             if (docSnap.exists()) {
-                setContent(docSnap.data() as HomepageContent);
+                const data = docSnap.data();
+                // Ensure all fields from defaultContent exist on the fetched data
+                const completeData = { ...defaultContent, ...data };
+                setContent(completeData);
             } else {
-                 // Document doesn't exist, create it with default content
                  setDoc(settingsRef, defaultContent).then(() => {
                      setContent(defaultContent);
                      console.log("Default settings created.");
@@ -145,24 +153,27 @@ export default function AdminSettingsPage() {
             if (section === 'siteName') {
                 return { ...prev, siteName: value };
             }
-            return {
-                ...prev,
-                [section]: {
-                    ...(prev[section] as any),
-                    [field]: value
-                }
-            };
+            const currentSection = prev[section];
+            if (typeof currentSection === 'object' && currentSection !== null) {
+                return {
+                    ...prev,
+                    [section]: {
+                        ...currentSection,
+                        [field]: value
+                    }
+                };
+            }
+            return prev;
         });
     };
+    
 
     const handleNestedArrayChange = (sectionKey: 'howItWorks' | 'features' | 'whyUs', arrayKey: 'steps' | 'items' | 'points', index: number, field: 'title' | 'description', value: string) => {
         setContent(prev => {
             if (!prev) return null;
     
-            // Create a deep copy to avoid direct state mutation
             const newContent = JSON.parse(JSON.stringify(prev));
     
-            // Update the specific value
             if (newContent[sectionKey] && newContent[sectionKey][arrayKey] && newContent[sectionKey][arrayKey][index]) {
                 newContent[sectionKey][arrayKey][index][field] = value;
             }
@@ -190,7 +201,6 @@ export default function AdminSettingsPage() {
             <form onSubmit={handleSave}>
                 <Accordion type="multiple" defaultValue={['site', 'hero', 'footer']} className="space-y-4">
                     
-                    {/* Site Details Section */}
                     <AccordionItem value="site">
                         <AccordionTrigger className="text-xl font-headline">Site Details</AccordionTrigger>
                         <AccordionContent>
@@ -203,7 +213,6 @@ export default function AdminSettingsPage() {
                         </AccordionContent>
                     </AccordionItem>
 
-                    {/* Hero Section */}
                     <AccordionItem value="hero">
                         <AccordionTrigger className="text-xl font-headline">Hero Section</AccordionTrigger>
                         <AccordionContent>
@@ -228,7 +237,6 @@ export default function AdminSettingsPage() {
                         </AccordionContent>
                     </AccordionItem>
 
-                     {/* How It Works Section */}
                     <AccordionItem value="how-it-works">
                         <AccordionTrigger className="text-xl font-headline">"How It Works" Section</AccordionTrigger>
                         <AccordionContent>
@@ -256,7 +264,6 @@ export default function AdminSettingsPage() {
                         </AccordionContent>
                     </AccordionItem>
                     
-                    {/* Features Section */}
                     <AccordionItem value="features">
                         <AccordionTrigger className="text-xl font-headline">Features Section</AccordionTrigger>
                         <AccordionContent>
@@ -280,7 +287,6 @@ export default function AdminSettingsPage() {
                         </AccordionContent>
                     </AccordionItem>
 
-                     {/* Why Us Section */}
                     <AccordionItem value="why-us">
                         <AccordionTrigger className="text-xl font-headline">"Why Us" Section</AccordionTrigger>
                         <AccordionContent>
@@ -312,7 +318,6 @@ export default function AdminSettingsPage() {
                         </AccordionContent>
                     </AccordionItem>
 
-                     {/* Testimonials Section */}
                     <AccordionItem value="testimonials">
                         <AccordionTrigger className="text-xl font-headline">Testimonials Section</AccordionTrigger>
                         <AccordionContent>
@@ -325,7 +330,6 @@ export default function AdminSettingsPage() {
                         </AccordionContent>
                     </AccordionItem>
 
-                     {/* CTA Section */}
                     <AccordionItem value="cta">
                         <AccordionTrigger className="text-xl font-headline">Call to Action Section</AccordionTrigger>
                         <AccordionContent>
@@ -346,7 +350,26 @@ export default function AdminSettingsPage() {
                         </AccordionContent>
                     </AccordionItem>
 
-                     {/* Footer Section */}
+                    <AccordionItem value="socials">
+                        <AccordionTrigger className="text-xl font-headline">Social Media</AccordionTrigger>
+                        <AccordionContent>
+                             <CardContent className="space-y-4 pt-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="social-twitter">Twitter (X) URL</Label>
+                                    <Input id="social-twitter" value={content.socials?.twitter || ''} onChange={e => handleInputChange('socials', 'twitter', e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="social-facebook">Facebook URL</Label>
+                                    <Input id="social-facebook" value={content.socials?.facebook || ''} onChange={e => handleInputChange('socials', 'facebook', e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="social-instagram">Instagram URL</Label>
+                                    <Input id="social-instagram" value={content.socials?.instagram || ''} onChange={e => handleInputChange('socials', 'instagram', e.target.value)} />
+                                </div>
+                             </CardContent>
+                        </AccordionContent>
+                    </AccordionItem>
+
                     <AccordionItem value="footer">
                         <AccordionTrigger className="text-xl font-headline">Footer Details</AccordionTrigger>
                         <AccordionContent>
@@ -372,5 +395,3 @@ export default function AdminSettingsPage() {
         </div>
     );
 }
-
-    
