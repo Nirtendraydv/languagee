@@ -71,28 +71,36 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/admin/inquiries">
-                <MessageSquare />
-                <span>Inquiries</span>
-              </SidebarMenuButton>
+              <Link href="/admin/inquiries" passHref>
+                <SidebarMenuButton>
+                  <MessageSquare />
+                  <span>Inquiries</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/admin/courses">
-                <BookOpen />
-                <span>Courses</span>
-              </SidebarMenuButton>
+              <Link href="/admin/courses" passHref>
+                <SidebarMenuButton>
+                  <BookOpen />
+                  <span>Courses</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/admin/tutors">
-                <Users />
-                <span>Tutors</span>
-              </SidebarMenuButton>
+              <Link href="/admin/tutors" passHref>
+                <SidebarMenuButton>
+                  <Users />
+                  <span>Tutors</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/admin/settings">
-                <Settings />
-                <span>Settings</span>
-              </SidebarMenuButton>
+              <Link href="/admin/settings" passHref>
+                <SidebarMenuButton>
+                  <Settings />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
