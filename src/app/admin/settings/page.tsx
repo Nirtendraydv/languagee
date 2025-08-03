@@ -94,29 +94,21 @@ export default function AdminSettingsPage() {
     const [isFetching, setIsFetching] = useState(true);
     const settingsRef = doc(db, "settings", SETTINGS_DOC_ID);
 
-    const fetchSettings = useCallback(async () => {
-        try {
-            const docSnap = await getDoc(settingsRef);
+    useEffect(() => {
+        const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
             if (docSnap.exists()) {
                 setContent(docSnap.data() as HomepageContent);
             } else {
-                 await setDoc(settingsRef, defaultContent);
-                 setContent(defaultContent);
+                 // Document doesn't exist, create it with default content
+                 setDoc(settingsRef, defaultContent).then(() => {
+                     setContent(defaultContent);
+                     console.log("Default settings created.");
+                 }).catch(error => {
+                     console.error("Error creating default settings:", error);
+                     toast({ variant: "destructive", title: "Error", description: "Could not create default settings." });
+                 });
             }
-        } catch (error) {
-            console.error("Error fetching settings:", error);
-            toast({ variant: "destructive", title: "Error", description: "Failed to load settings." });
-        } finally {
             setIsFetching(false);
-        }
-    }, [settingsRef, toast]);
-
-    useEffect(() => {
-        const unsubscribe = onSnapshot(settingsRef, (doc) => {
-             if (doc.exists()) {
-                setContent(doc.data() as HomepageContent);
-            }
-            if(isFetching) setIsFetching(false);
         }, (error) => {
              console.error("Error with settings snapshot:", error);
             toast({ variant: "destructive", title: "Error", description: "Failed to load real-time settings." });
@@ -124,7 +116,7 @@ export default function AdminSettingsPage() {
         });
 
         return () => unsubscribe();
-    }, [isFetching, settingsRef, toast]);
+    }, [settingsRef, toast]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -148,34 +140,24 @@ export default function AdminSettingsPage() {
     const handleInputChange = (section: keyof HomepageContent, field: string, value: string) => {
         setContent(prev => {
             if (!prev) return null;
+            const currentSection = prev[section];
+            const newSection = { ...currentSection, [field]: value };
+            
             return {
                 ...prev,
-                [section]: {
-                    ...prev[section],
-                    [field]: value
-                }
+                [section]: newSection,
             } as HomepageContent;
         });
     };
 
-    const handleNestedArrayChange = (section: keyof HomepageContent, index: number, field: string, value: string) => {
+    const handleNestedArrayChange = (section: keyof HomepageContent, index: number, field: string, value: string, arrayName: 'steps' | 'items' | 'points') => {
         setContent(prev => {
             if (!prev) return null;
             const sectionData = prev[section] as any;
-            if (sectionData?.items) { // For Features
-                 const newItems = [...sectionData.items];
-                 newItems[index] = { ...newItems[index], [field]: value };
-                 return { ...prev, [section]: { ...sectionData, items: newItems } };
-            }
-            if (sectionData?.steps) { // For How It Works
-                 const newSteps = [...sectionData.steps];
-                 newSteps[index] = { ...newSteps[index], [field]: value };
-                 return { ...prev, [section]: { ...sectionData, steps: newSteps } };
-            }
-            if (sectionData?.points) { // For Why Us
-                 const newPoints = [...sectionData.points];
-                 newPoints[index] = { ...newPoints[index], [field]: value };
-                 return { ...prev, [section]: { ...sectionData, points: newPoints } };
+            if (sectionData && Array.isArray(sectionData[arrayName])) {
+                 const newArray = [...sectionData[arrayName]];
+                 newArray[index] = { ...newArray[index], [field]: value };
+                 return { ...prev, [section]: { ...sectionData, [arrayName]: newArray } };
             }
             return prev;
         });
@@ -183,7 +165,7 @@ export default function AdminSettingsPage() {
 
     if (isFetching || !content) {
         return (
-            <div className="p-8 flex justify-center items-center">
+            <div className="p-8 flex justify-center items-center h-[80vh]">
                 <Loader2 className="h-12 w-12 animate-spin" />
             </div>
         )
@@ -204,7 +186,7 @@ export default function AdminSettingsPage() {
                     <AccordionItem value="hero">
                         <AccordionTrigger className="text-xl font-headline">Hero Section</AccordionTrigger>
                         <AccordionContent>
-                             <CardContent className="space-y-4">
+                             <CardContent className="space-y-4 pt-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="hero-title">Title</Label>
                                     <Input id="hero-title" value={content.hero.title} onChange={e => handleInputChange('hero', 'title', e.target.value)} />
@@ -229,7 +211,7 @@ export default function AdminSettingsPage() {
                     <AccordionItem value="how-it-works">
                         <AccordionTrigger className="text-xl font-headline">"How It Works" Section</AccordionTrigger>
                         <AccordionContent>
-                             <CardContent className="space-y-4">
+                             <CardContent className="space-y-4 pt-6">
                                 <div className="space-y-2">
                                     <Label>Section Title</Label>
                                     <Input value={content.howItWorks.title} onChange={e => handleInputChange('howItWorks', 'title', e.target.value)} />
@@ -243,9 +225,9 @@ export default function AdminSettingsPage() {
                                    {content.howItWorks.steps.map((step, index) => (
                                        <div key={index} className="p-4 border rounded-lg space-y-2">
                                            <Label>Step {index + 1} Title</Label>
-                                           <Input value={step.title} onChange={e => handleNestedArrayChange('howItWorks', index, 'title', e.target.value)} />
+                                           <Input value={step.title} onChange={e => handleNestedArrayChange('howItWorks', index, 'title', e.target.value, 'steps')} />
                                            <Label>Step {index + 1} Description</Label>
-                                           <Textarea value={step.description} onChange={e => handleNestedArrayChange('howItWorks', index, 'description', e.target.value)} />
+                                           <Textarea value={step.description} onChange={e => handleNestedArrayChange('howItWorks', index, 'description', e.target.value, 'steps')} />
                                        </div>
                                    ))}
                                 </div>
@@ -257,7 +239,7 @@ export default function AdminSettingsPage() {
                     <AccordionItem value="features">
                         <AccordionTrigger className="text-xl font-headline">Features Section</AccordionTrigger>
                         <AccordionContent>
-                             <CardContent className="space-y-4">
+                             <CardContent className="space-y-4 pt-6">
                                 <div className="space-y-2">
                                     <Label>Section Title</Label>
                                     <Input value={content.features.title} onChange={e => handleInputChange('features', 'title', e.target.value)} />
@@ -267,9 +249,9 @@ export default function AdminSettingsPage() {
                                    {content.features.items.map((item, index) => (
                                        <div key={index} className="p-4 border rounded-lg space-y-2">
                                            <Label>Feature {index + 1} Title</Label>
-                                           <Input value={item.title} onChange={e => handleNestedArrayChange('features', index, 'title', e.target.value)} />
+                                           <Input value={item.title} onChange={e => handleNestedArrayChange('features', index, 'title', e.target.value, 'items')} />
                                            <Label>Feature {index + 1} Description</Label>
-                                           <Textarea value={item.description} onChange={e => handleNestedArrayChange('features', index, 'description', e.target.value)} />
+                                           <Textarea value={item.description} onChange={e => handleNestedArrayChange('features', index, 'description', e.target.value, 'items')} />
                                        </div>
                                    ))}
                                 </div>
@@ -281,7 +263,7 @@ export default function AdminSettingsPage() {
                     <AccordionItem value="why-us">
                         <AccordionTrigger className="text-xl font-headline">"Why Us" Section</AccordionTrigger>
                         <AccordionContent>
-                             <CardContent className="space-y-4">
+                             <CardContent className="space-y-4 pt-6">
                                 <div className="space-y-2">
                                     <Label>Section Title</Label>
                                     <Input value={content.whyUs.title} onChange={e => handleInputChange('whyUs', 'title', e.target.value)} />
@@ -299,9 +281,9 @@ export default function AdminSettingsPage() {
                                    {content.whyUs.points.map((point, index) => (
                                        <div key={index} className="p-4 border rounded-lg space-y-2">
                                            <Label>Point {index + 1} Title</Label>
-                                           <Input value={point.title} onChange={e => handleNestedArrayChange('whyUs', index, 'title', e.target.value)} />
+                                           <Input value={point.title} onChange={e => handleNestedArrayChange('whyUs', index, 'title', e.target.value, 'points')} />
                                            <Label>Point {index + 1} Description</Label>
-                                           <Textarea value={point.description} onChange={e => handleNestedArrayChange('whyUs', index, 'description', e.target.value)} />
+                                           <Textarea value={point.description} onChange={e => handleNestedArrayChange('whyUs', index, 'description', e.target.value, 'points')} />
                                        </div>
                                    ))}
                                 </div>
@@ -313,7 +295,7 @@ export default function AdminSettingsPage() {
                     <AccordionItem value="testimonials">
                         <AccordionTrigger className="text-xl font-headline">Testimonials Section</AccordionTrigger>
                         <AccordionContent>
-                             <CardContent className="space-y-4">
+                             <CardContent className="space-y-4 pt-6">
                                 <div className="space-y-2">
                                     <Label>Section Title</Label>
                                     <Input value={content.testimonials.title} onChange={e => handleInputChange('testimonials', 'title', e.target.value)} />
@@ -326,7 +308,7 @@ export default function AdminSettingsPage() {
                     <AccordionItem value="cta">
                         <AccordionTrigger className="text-xl font-headline">Call to Action Section</AccordionTrigger>
                         <AccordionContent>
-                             <CardContent className="space-y-4">
+                             <CardContent className="space-y-4 pt-6">
                                 <div className="space-y-2">
                                     <Label>Title</Label>
                                     <Input value={content.cta.title} onChange={e => handleInputChange('cta', 'title', e.target.value)} />
@@ -347,7 +329,7 @@ export default function AdminSettingsPage() {
                     <AccordionItem value="footer">
                         <AccordionTrigger className="text-xl font-headline">Footer Details</AccordionTrigger>
                         <AccordionContent>
-                             <CardContent className="space-y-4">
+                             <CardContent className="space-y-4 pt-6">
                                 <div className="space-y-2">
                                     <Label>Address</Label>
                                     <Input value={content.footer.address} onChange={e => handleInputChange('footer', 'address', e.target.value)} />
@@ -369,5 +351,3 @@ export default function AdminSettingsPage() {
         </div>
     );
 }
-
-    
