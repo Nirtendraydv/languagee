@@ -1,10 +1,11 @@
 
 "use client";
 
-import { TUTORS } from '@/lib/constants';
+import { TUTORS, TUTOR_FAQ } from '@/lib/constants';
 import TutorCard from '@/components/TutorCard';
-import { Award, Heart, Users } from 'lucide-react';
+import { Award, Heart, Users, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export default function TutorsPage() {
 
@@ -72,6 +73,26 @@ export default function TutorsPage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="py-20 container mx-auto">
+        <h2 className="text-4xl font-headline font-bold text-center mb-12">Frequently Asked Questions</h2>
+        <div className="max-w-3xl mx-auto">
+          <Accordion type="single" collapsible className="w-full">
+            {TUTOR_FAQ.split('\n\n').map((faq, index) => {
+              const [question, answer] = faq.split('\nA: ');
+              const q = question.replace('Q: ', '');
+              return (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-lg font-semibold text-left">{q}</AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-base">
+                    {answer}
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </div>
       </section>
     </div>

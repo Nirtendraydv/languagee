@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Star, MapPin, Award, BookOpen, MessageCircle, CheckCircle, BarChart } from 'lucide-react';
 import { Badge } from './ui/badge';
+import Link from 'next/link';
 
 type Tutor = {
   id: number;
@@ -73,10 +74,12 @@ export default function TutorCard({ tutor }: TutorCardProps) {
 
       </CardContent>
       <CardFooter className="p-6 pt-0">
-        <Button size="lg" className="w-full bg-primary hover:bg-primary/90 rounded-full text-lg py-6">
-            <MessageCircle className="mr-2"/>
-            Book a Trial Lesson
-        </Button>
+        <Link href="/contact" className="w-full">
+            <Button size="lg" className="w-full bg-primary hover:bg-primary/90 rounded-full text-lg py-6">
+                <MessageCircle className="mr-2"/>
+                Book a Trial Lesson
+            </Button>
+        </Link>
       </CardFooter>
     </Card>
   );
