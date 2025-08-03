@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Globe, UserCog } from "lucide-react";
 import NavItem from "./NavItem";
 import { useAuth } from "../AuthProvider";
@@ -131,11 +131,15 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
+              <SheetHeader className="p-6 pb-2 text-left">
+                  <SheetTitle>
+                    <Link href="/" className="flex items-center gap-2" onClick={() => setSheetOpen(false)}>
+                        <Globe className="h-7 w-7 text-primary" />
+                        <span className="font-headline text-2xl font-bold">{settings.siteName}</span>
+                    </Link>
+                  </SheetTitle>
+              </SheetHeader>
               <div className="flex flex-col gap-6 p-6">
-                <Link href="/" className="flex items-center gap-2 mb-4" onClick={() => setSheetOpen(false)}>
-                    <Globe className="h-7 w-7 text-primary" />
-                    <span className="font-headline text-2xl font-bold">{settings.siteName}</span>
-                </Link>
                 <nav className="flex flex-col gap-4">
                 {navLinks.map((link) => (
                     <Link
@@ -184,5 +188,3 @@ export default function Header() {
     </header>
   );
 }
-
-    
