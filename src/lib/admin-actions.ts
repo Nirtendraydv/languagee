@@ -5,13 +5,17 @@ import { initializeApp, getApps, getApp, App, cert } from "firebase-admin/app";
 import { getAuth as getAdminAuth, UserRecord } from "firebase-admin/auth";
 
 const adminApp = (): App => {
+    // This pattern ensures we're not re-initializing the app on every call.
     if (getApps().length > 0) {
         return getApp();
     }
 
+    // Check for the service account credentials in the environment variable.
+    // This is the recommended way for local development and certain cloud environments.
     const serviceAccountString = process.env.GOOGLE_APPLICATION_CREDENTIALS;
     if (serviceAccountString) {
         try {
+            // Parse the string into a JSON object.
             const serviceAccount = JSON.parse(serviceAccountString);
             return initializeApp({
                 credential: cert(serviceAccount),
@@ -22,7 +26,8 @@ const adminApp = (): App => {
         }
     }
 
-    // Use default credentials provided by the App Hosting environment.
+    // If the environment variable is not set, use Application Default Credentials.
+    // This is the standard for Firebase and Google Cloud environments like App Hosting.
     return initializeApp();
 };
 
