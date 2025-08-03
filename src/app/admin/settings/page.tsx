@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,29 +11,43 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
+const SETTINGS_DOC_ID = "siteConfig";
+
 export default function AdminSettingsPage() {
     const { toast } = useToast();
-    const [siteName, setSiteName] = useState("English Excellence");
+    const [siteName, setSiteName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
-    const settingsRef = doc(db, "settings", "siteConfig");
+    const settingsRef = doc(db, "settings", SETTINGS_DOC_ID);
+
+    const fetchSettings = useCallback(async () => {
+        try {
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                setSiteName(docSnap.data().siteName || "");
+            } else {
+                 await setDoc(settingsRef, { siteName: "English Excellence" });
+                 setSiteName("English Excellence");
+            }
+        } catch (error) {
+            console.error("Error fetching settings:", error);
+            toast({ variant: "destructive", title: "Error", description: "Failed to load settings." });
+        } finally {
+            setIsFetching(false);
+        }
+    }, [settingsRef, toast]);
 
     useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const docSnap = await getDoc(settingsRef);
-                if (docSnap.exists()) {
-                    setSiteName(docSnap.data().siteName);
-                }
-            } catch (error) {
-                console.error("Error fetching settings:", error);
-                toast({ variant: "destructive", title: "Error", description: "Failed to load settings." });
-            } finally {
-                setIsFetching(false);
-            }
-        };
         fetchSettings();
-    }, []);
+
+        const unsubscribe = onSnapshot(settingsRef, (doc) => {
+             if (doc.exists()) {
+                setSiteName(doc.data().siteName || "");
+            }
+        });
+
+        return () => unsubscribe();
+    }, [fetchSettings, settingsRef]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,9 +89,10 @@ export default function AdminSettingsPage() {
                                         id="siteName" 
                                         value={siteName}
                                         onChange={(e) => setSiteName(e.target.value)}
+                                        placeholder="Your Website Name"
                                     />
                                 </div>
-                                <Button type="submit" disabled={isLoading}>
+                                <Button type="submit" disabled={isLoading || !siteName}>
                                     {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : "Save Changes"}
                                 </Button>
                             </form>

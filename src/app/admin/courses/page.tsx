@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +26,7 @@ type Course = {
   description: string;
   badge?: string;
   image: string;
+  dataAiHint?: string;
   liveClassLink: string;
 };
 
@@ -80,10 +81,22 @@ export default function AdminCoursesPage() {
       } else {
         // Add new course
         const { id, ...courseData } = currentCourse;
-        await addDoc(collection(db, "courses"), courseData);
+        // Provide default values for required fields if they are empty
+        const newCourseData = {
+          ...courseData,
+          title: courseData.title || "New Course",
+          level: courseData.level || "N/A",
+          ageGroup: courseData.ageGroup || "N/A",
+          goal: courseData.goal || "N/A",
+          description: courseData.description || "No description.",
+          image: courseData.image || 'https://placehold.co/600x400.png',
+          dataAiHint: courseData.dataAiHint || 'education',
+          liveClassLink: courseData.liveClassLink || '#',
+        };
+        await addDoc(collection(db, "courses"), newCourseData);
         toast({ title: "Success", description: "Course added successfully." });
       }
-      fetchCourses();
+      await fetchCourses();
       setIsDialogOpen(false);
       setCurrentCourse(null);
     } catch (error) {
@@ -97,7 +110,7 @@ export default function AdminCoursesPage() {
     try {
       await deleteDoc(doc(db, "courses", courseId));
       toast({ title: "Success", description: "Course deleted successfully." });
-      fetchCourses();
+      await fetchCourses();
     } catch (error) {
       console.error("Error deleting course:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to delete course." });
@@ -113,56 +126,70 @@ export default function AdminCoursesPage() {
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Manage Courses</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setCurrentCourse({})}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add New Course
+         <div className="flex items-center gap-2">
+           <Button onClick={fetchCourses} variant="outline" disabled={isLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{currentCourse?.id ? "Edit Course" : "Add New Course"}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSave} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" name="title" value={currentCourse?.title || ''} onChange={handleFormChange} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="level">Level</Label>
-                    <Input id="level" name="level" value={currentCourse?.level || ''} onChange={handleFormChange} required />
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+                <Button onClick={() => setCurrentCourse({
+                  image: 'https://placehold.co/600x400.png',
+                  dataAiHint: 'education',
+                  liveClassLink: 'https://meet.google.com/new'
+                })}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Course
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                <DialogTitle>{currentCourse?.id ? "Edit Course" : "Add New Course"}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSave} className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input id="title" name="title" value={currentCourse?.title || ''} onChange={handleFormChange} required />
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="ageGroup">Age Group</Label>
-                    <Input id="ageGroup" name="ageGroup" value={currentCourse?.ageGroup || ''} onChange={handleFormChange} required />
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="level">Level</Label>
+                        <Input id="level" name="level" value={currentCourse?.level || ''} onChange={handleFormChange} required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="ageGroup">Age Group</Label>
+                        <Input id="ageGroup" name="ageGroup" value={currentCourse?.ageGroup || ''} onChange={handleFormChange} required />
+                    </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="goal">Goal</Label>
-                <Input id="goal" name="goal" value={currentCourse?.goal || ''} onChange={handleFormChange} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" name="description" value={currentCourse?.description || ''} onChange={handleFormChange} required />
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="badge">Badge (optional)</Label>
-                <Input id="badge" name="badge" value={currentCourse?.badge || ''} onChange={handleFormChange} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="image">Image URL</Label>
-                <Input id="image" name="image" value={currentCourse?.image || ''} onChange={handleFormChange} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="liveClassLink">Live Class Link</Label>
-                <Input id="liveClassLink" name="liveClassLink" value={currentCourse?.liveClassLink || ''} onChange={handleFormChange} required />
-              </div>
-              <Button type="submit">Save Course</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <div className="space-y-2">
+                    <Label htmlFor="goal">Goal</Label>
+                    <Input id="goal" name="goal" value={currentCourse?.goal || ''} onChange={handleFormChange} required />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description" name="description" value={currentCourse?.description || ''} onChange={handleFormChange} required />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="badge">Badge (optional)</Label>
+                    <Input id="badge" name="badge" value={currentCourse?.badge || ''} onChange={handleFormChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="image">Image URL</Label>
+                    <Input id="image" name="image" value={currentCourse?.image || ''} onChange={handleFormChange} required />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="dataAiHint">Image AI Hint</Label>
+                    <Input id="dataAiHint" name="dataAiHint" value={currentCourse?.dataAiHint || ''} onChange={handleFormChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="liveClassLink">Live Class Link</Label>
+                    <Input id="liveClassLink" name="liveClassLink" value={currentCourse?.liveClassLink || ''} onChange={handleFormChange} required />
+                </div>
+                <Button type="submit">Save Course</Button>
+                </form>
+            </DialogContent>
+            </Dialog>
+         </div>
       </div>
 
       <Card>

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -74,7 +74,7 @@ export default function AdminTutorsPage() {
         ...currentTutor,
         experience: Number(currentTutor.experience) || 0,
         rating: Number(currentTutor.rating) || 0,
-        specialties: Array.isArray(currentTutor.specialties) ? currentTutor.specialties : (currentTutor.specialties as string || '').split(',').map(s => s.trim())
+        specialties: Array.isArray(currentTutor.specialties) ? currentTutor.specialties : (currentTutor.specialties as string || '').split(',').map(s => s.trim()).filter(Boolean)
       };
 
       if (currentTutor.id) {
@@ -87,7 +87,7 @@ export default function AdminTutorsPage() {
         await addDoc(collection(db, "tutors"), data);
         toast({ title: "Success", description: "Tutor added successfully." });
       }
-      fetchTutors();
+      await fetchTutors();
       setIsDialogOpen(false);
       setCurrentTutor(null);
     } catch (error) {
@@ -101,7 +101,7 @@ export default function AdminTutorsPage() {
     try {
       await deleteDoc(doc(db, "tutors", tutorId));
       toast({ title: "Success", description: "Tutor deleted successfully." });
-      fetchTutors();
+      await fetchTutors();
     } catch (error) {
       console.error("Error deleting tutor:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to delete tutor." });
@@ -117,62 +117,72 @@ export default function AdminTutorsPage() {
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Manage Tutors</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-                <Button onClick={() => setCurrentTutor({})}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add New Tutor
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>{currentTutor?.id ? 'Edit Tutor' : 'Add New Tutor'}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSave} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
-                        <Input id="name" name="name" value={currentTutor?.name || ''} onChange={handleFormChange} required />
-                    </div>
-                     <div className="grid grid-cols-2 gap-4">
+         <div className="flex items-center gap-2">
+            <Button onClick={fetchTutors} variant="outline" disabled={isLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button onClick={() => setCurrentTutor({
+                      avatar: 'https://placehold.co/150x150.png',
+                      dataAiHint: 'person portrait',
+                      specialties: []
+                    })}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add New Tutor
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>{currentTutor?.id ? 'Edit Tutor' : 'Add New Tutor'}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSave} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="country">Country</Label>
-                            <Input id="country" name="country" value={currentTutor?.country || ''} onChange={handleFormChange} required />
+                            <Label htmlFor="name">Name</Label>
+                            <Input id="name" name="name" value={currentTutor?.name || ''} onChange={handleFormChange} required />
                         </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="accent">Accent</Label>
-                            <Input id="accent" name="accent" value={currentTutor?.accent || ''} onChange={handleFormChange} required />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="country">Country</Label>
+                                <Input id="country" name="country" value={currentTutor?.country || ''} onChange={handleFormChange} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="accent">Accent</Label>
+                                <Input id="accent" name="accent" value={currentTutor?.accent || ''} onChange={handleFormChange} required />
+                            </div>
                         </div>
-                    </div>
-                     <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="experience">Experience (Years)</Label>
+                                <Input id="experience" name="experience" type="number" value={currentTutor?.experience || ''} onChange={handleFormChange} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="rating">Rating</Label>
+                                <Input id="rating" name="rating" type="number" step="0.1" value={currentTutor?.rating || ''} onChange={handleFormChange} required />
+                            </div>
+                        </div>
                         <div className="space-y-2">
-                            <Label htmlFor="experience">Experience (Years)</Label>
-                            <Input id="experience" name="experience" type="number" value={currentTutor?.experience || ''} onChange={handleFormChange} required />
+                            <Label htmlFor="avatar">Avatar URL</Label>
+                            <Input id="avatar" name="avatar" value={currentTutor?.avatar || ''} onChange={handleFormChange} required />
                         </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="rating">Rating</Label>
-                            <Input id="rating" name="rating" type="number" step="0.1" value={currentTutor?.rating || ''} onChange={handleFormChange} required />
+                        <div className="space-y-2">
+                            <Label htmlFor="dataAiHint">AI Hint (for image generation)</Label>
+                            <Input id="dataAiHint" name="dataAiHint" value={currentTutor?.dataAiHint || ''} onChange={handleFormChange} required />
                         </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="avatar">Avatar URL</Label>
-                        <Input id="avatar" name="avatar" value={currentTutor?.avatar || ''} onChange={handleFormChange} required />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="dataAiHint">AI Hint (for image generation)</Label>
-                        <Input id="dataAiHint" name="dataAiHint" value={currentTutor?.dataAiHint || ''} onChange={handleFormChange} required />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="bio">Bio</Label>
-                        <Textarea id="bio" name="bio" value={currentTutor?.bio || ''} onChange={handleFormChange} required />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="specialties">Specialties (comma-separated)</Label>
-                        <Input id="specialties" name="specialties" value={Array.isArray(currentTutor?.specialties) ? currentTutor.specialties.join(', ') : currentTutor?.specialties || ''} onChange={handleFormChange} required />
-                    </div>
-                    <Button type="submit">Save Tutor</Button>
-                </form>
-            </DialogContent>
-        </Dialog>
+                        <div className="space-y-2">
+                            <Label htmlFor="bio">Bio</Label>
+                            <Textarea id="bio" name="bio" value={currentTutor?.bio || ''} onChange={handleFormChange} required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="specialties">Specialties (comma-separated)</Label>
+                            <Input id="specialties" name="specialties" value={Array.isArray(currentTutor?.specialties) ? currentTutor.specialties.join(', ') : currentTutor?.specialties || ''} onChange={handleFormChange} required />
+                        </div>
+                        <Button type="submit">Save Tutor</Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -208,7 +218,7 @@ export default function AdminTutorsPage() {
                     </TableCell>
                     <TableCell>{tutor.country}</TableCell>
                     <TableCell>{tutor.experience} years</TableCell>
-                    <TableCell>{tutor.rating}</TableCell>
+                    <TableCell>{tutor.rating.toFixed(1)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
