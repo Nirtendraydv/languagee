@@ -11,6 +11,7 @@ import { collection, getDocs, onSnapshot, query, setDoc, doc } from 'firebase/fi
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { USERS_PLACEHOLDER } from '@/lib/constants';
+import { listAllAuthUsers } from '@/lib/admin-actions';
 
 type User = {
     uid: string;
@@ -36,35 +37,45 @@ export default function UsersPage() {
   const fetchData = async () => {
       setIsLoading(true);
       try {
-          const usersQuery = query(collection(db, "users"));
-          const usersSnapshot = await getDocs(usersQuery);
-          
-          let fetchedUsers: User[];
+          // 1. Fetch all users from Firebase Auth
+          const authUsers = await listAllAuthUsers();
 
-          if (usersSnapshot.empty) {
+          // If no users in Auth and placeholders exist, populate Firestore with placeholders
+          if (authUsers.length === 0 && USERS_PLACEHOLDER.length > 0) {
               for (const user of USERS_PLACEHOLDER) {
-                  // Use setDoc with the user's UID as the document ID
                   const userRef = doc(db, "users", user.uid);
-                  await setDoc(userRef, user);
+                  await setDoc(userRef, { email: user.email, uid: user.uid, createdAt: user.createdAt });
               }
-              const seededSnapshot = await getDocs(usersQuery);
-              fetchedUsers = seededSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
-          } else {
-              fetchedUsers = usersSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
           }
           
+          // 2. Fetch all courses from Firestore
           const coursesSnapshot = await getDocs(collection(db, "courses"));
           const courses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
 
-          const usersWithCourses = fetchedUsers.map(user => {
-              const enrolledCourses = courses.filter(course => course.enrolledUserIds?.includes(user.uid));
-              return { ...user, enrolledCourses };
+          // 3. Fetch all user documents from Firestore 'users' collection
+          const firestoreUsersSnapshot = await getDocs(collection(db, "users"));
+          const firestoreUsers = firestoreUsersSnapshot.docs.map(doc => doc.data() as User);
+
+          // 4. Merge Auth users with Firestore data
+          const usersWithCourses = authUsers.map(authUser => {
+              const firestoreUser = firestoreUsers.find(u => u.uid === authUser.uid);
+              const enrolledCourses = courses.filter(course => course.enrolledUserIds?.includes(authUser.uid));
+              return { 
+                  ...authUser, 
+                  createdAt: firestoreUser?.createdAt,
+                  enrolledCourses 
+              };
           });
           
           setUsers(usersWithCourses);
-      } catch (error) {
+
+      } catch (error: any) {
           console.error("Error fetching data:", error);
-          toast({ variant: "destructive", title: "Error", description: "Failed to fetch user or course data." });
+          if (error.message.includes("insufficient permissions")) {
+            toast({ variant: "destructive", title: "Permission Error", description: "The service account needs 'Firebase Authentication Admin' role to list users. See INSTRUCTIONS.md." });
+          } else {
+            toast({ variant: "destructive", title: "Error", description: "Failed to fetch user or course data." });
+          }
       } finally {
           setIsLoading(false);
       }
@@ -74,6 +85,7 @@ export default function UsersPage() {
   useEffect(() => {
     fetchData();
 
+    // Set up a listener on the courses collection to refetch data if enrollments change
     const unsubscribe = onSnapshot(collection(db, "courses"), (snapshot) => {
         fetchData(); 
     });
