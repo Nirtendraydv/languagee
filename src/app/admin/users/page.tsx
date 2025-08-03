@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { collection, getDocs, onSnapshot, query, addDoc, where } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, setDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { USERS_PLACEHOLDER } from '@/lib/constants';
@@ -43,7 +43,9 @@ export default function UsersPage() {
 
           if (usersSnapshot.empty) {
               for (const user of USERS_PLACEHOLDER) {
-                  await addDoc(collection(db, "users"), user);
+                  // Use setDoc with the user's UID as the document ID
+                  const userRef = doc(db, "users", user.uid);
+                  await setDoc(userRef, user);
               }
               const seededSnapshot = await getDocs(usersQuery);
               fetchedUsers = seededSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
