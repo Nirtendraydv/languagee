@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -5,6 +6,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { AiTutorSidebar } from '@/components/AiTutorSidebar';
+import { AuthProvider } from '@/components/AuthProvider';
 
 export const metadata: Metadata = {
   title: 'English Excellence - Learn English Anywhere',
@@ -35,11 +37,13 @@ export default function RootLayout({
           'min-h-screen bg-background font-body antialiased flex flex-col'
         )}
       >
-        <Header />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-        <AiTutorSidebar />
-        <Toaster />
+        <AuthProvider>
+            <Header />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+            <AiTutorSidebar />
+            <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

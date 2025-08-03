@@ -7,9 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Globe, UserCog } from "lucide-react";
 import NavItem from "./NavItem";
+import { useAuth } from "../AuthProvider";
+import { auth } from "@/lib/firebase";
 
 export default function Header() {
   const [isSheetOpen, setSheetOpen] = useState(false);
+  const { user } = useAuth();
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    setSheetOpen(false);
+  };
 
   const navLinks = [
     { href: "/about", label: "About Us" },
@@ -35,8 +43,18 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Button variant="ghost" className="hidden md:flex">Log In</Button>
-          <Button className="hidden md:flex bg-primary hover:bg-primary/90">Sign Up</Button>
+          {user ? (
+            <Button variant="ghost" onClick={handleLogout} className="hidden md:flex">Log Out</Button>
+          ) : (
+            <>
+              <Link href="/login" passHref>
+                <Button variant="ghost" className="hidden md:flex">Log In</Button>
+              </Link>
+              <Link href="/signup" passHref>
+                <Button className="hidden md:flex bg-primary hover:bg-primary/90">Sign Up</Button>
+              </Link>
+            </>
+          )}
           
           <Link href="/admin/login">
             <Button variant="outline" size="icon" className="hidden md:flex">
@@ -78,8 +96,18 @@ export default function Header() {
                 </Link>
                 </nav>
                 <div className="flex flex-col gap-3 mt-auto">
-                    <Button variant="ghost">Log In</Button>
-                    <Button className="bg-primary hover:bg-primary/90">Sign Up</Button>
+                    {user ? (
+                       <Button variant="ghost" onClick={handleLogout}>Log Out</Button>
+                    ) : (
+                        <>
+                           <Link href="/login" passHref>
+                                <Button variant="ghost" onClick={() => setSheetOpen(false)}>Log In</Button>
+                           </Link>
+                           <Link href="/signup" passHref>
+                               <Button className="bg-primary hover:bg-primary/90" onClick={() => setSheetOpen(false)}>Sign Up</Button>
+                           </Link>
+                        </>
+                    )}
                 </div>
               </div>
             </SheetContent>
