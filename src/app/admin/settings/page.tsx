@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
@@ -140,26 +140,33 @@ export default function AdminSettingsPage() {
     const handleInputChange = (section: keyof HomepageContent, field: string, value: string) => {
         setContent(prev => {
             if (!prev) return null;
-            const currentSection = prev[section];
-            const newSection = { ...currentSection, [field]: value };
-            
             return {
                 ...prev,
-                [section]: newSection,
-            } as HomepageContent;
+                [section]: {
+                    ...(prev[section] as any),
+                    [field]: value
+                }
+            };
         });
     };
 
     const handleNestedArrayChange = (section: keyof HomepageContent, index: number, field: string, value: string, arrayName: 'steps' | 'items' | 'points') => {
-        setContent(prev => {
+       setContent(prev => {
             if (!prev) return null;
-            const sectionData = prev[section] as any;
-            if (sectionData && Array.isArray(sectionData[arrayName])) {
-                 const newArray = [...sectionData[arrayName]];
-                 newArray[index] = { ...newArray[index], [field]: value };
-                 return { ...prev, [section]: { ...sectionData, [arrayName]: newArray } };
-            }
-            return prev;
+
+            const newContent = { ...prev };
+            const sectionData = { ...(newContent[section] as any) };
+            const newArray = [...(sectionData[arrayName] as any[])];
+            
+            newArray[index] = {
+                ...newArray[index],
+                [field]: value,
+            };
+
+            sectionData[arrayName] = newArray;
+            newContent[section] = sectionData;
+
+            return newContent;
         });
     };
 
