@@ -116,7 +116,7 @@ export default function AdminSettingsPage() {
         });
 
         return () => unsubscribe();
-    }, [settingsRef, toast]);
+    }, []);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -150,22 +150,16 @@ export default function AdminSettingsPage() {
         });
     };
 
-    const handleNestedArrayChange = (section: keyof HomepageContent, index: number, field: string, value: string, arrayName: 'steps' | 'items' | 'points') => {
-       setContent(prev => {
+    const handleNestedArrayChange = (sectionKey: 'howItWorks' | 'features' | 'whyUs', arrayKey: 'steps' | 'items' | 'points', index: number, field: 'title' | 'description', value: string) => {
+        setContent(prev => {
             if (!prev) return null;
-
-            const newContent = { ...prev };
-            const sectionData = { ...(newContent[section] as any) };
-            const newArray = [...(sectionData[arrayName] as any[])];
-            
-            newArray[index] = {
-                ...newArray[index],
-                [field]: value,
-            };
-
-            sectionData[arrayName] = newArray;
-            newContent[section] = sectionData;
-
+    
+            // Create a deep copy to avoid direct state mutation
+            const newContent = JSON.parse(JSON.stringify(prev));
+    
+            // Update the specific value
+            newContent[sectionKey][arrayKey][index][field] = value;
+    
             return newContent;
         });
     };
@@ -232,9 +226,9 @@ export default function AdminSettingsPage() {
                                    {content.howItWorks.steps.map((step, index) => (
                                        <div key={index} className="p-4 border rounded-lg space-y-2">
                                            <Label>Step {index + 1} Title</Label>
-                                           <Input value={step.title} onChange={e => handleNestedArrayChange('howItWorks', index, 'title', e.target.value, 'steps')} />
+                                           <Input value={step.title} onChange={e => handleNestedArrayChange('howItWorks', 'steps', index, 'title', e.target.value)} />
                                            <Label>Step {index + 1} Description</Label>
-                                           <Textarea value={step.description} onChange={e => handleNestedArrayChange('howItWorks', index, 'description', e.target.value, 'steps')} />
+                                           <Textarea value={step.description} onChange={e => handleNestedArrayChange('howItWorks', 'steps', index, 'description', e.target.value)} />
                                        </div>
                                    ))}
                                 </div>
@@ -256,9 +250,9 @@ export default function AdminSettingsPage() {
                                    {content.features.items.map((item, index) => (
                                        <div key={index} className="p-4 border rounded-lg space-y-2">
                                            <Label>Feature {index + 1} Title</Label>
-                                           <Input value={item.title} onChange={e => handleNestedArrayChange('features', index, 'title', e.target.value, 'items')} />
+                                           <Input value={item.title} onChange={e => handleNestedArrayChange('features', 'items', index, 'title', e.target.value)} />
                                            <Label>Feature {index + 1} Description</Label>
-                                           <Textarea value={item.description} onChange={e => handleNestedArrayChange('features', index, 'description', e.target.value, 'items')} />
+                                           <Textarea value={item.description} onChange={e => handleNestedArrayChange('features', 'items', index, 'description', e.target.value)} />
                                        </div>
                                    ))}
                                 </div>
@@ -288,9 +282,9 @@ export default function AdminSettingsPage() {
                                    {content.whyUs.points.map((point, index) => (
                                        <div key={index} className="p-4 border rounded-lg space-y-2">
                                            <Label>Point {index + 1} Title</Label>
-                                           <Input value={point.title} onChange={e => handleNestedArrayChange('whyUs', index, 'title', e.target.value, 'points')} />
+                                           <Input value={point.title} onChange={e => handleNestedArrayChange('whyUs', 'points', index, 'title', e.target.value)} />
                                            <Label>Point {index + 1} Description</Label>
-                                           <Textarea value={point.description} onChange={e => handleNestedArrayChange('whyUs', index, 'description', e.target.value, 'points')} />
+                                           <Textarea value={point.description} onChange={e => handleNestedArrayChange('whyUs', 'points', index, 'description', e.target.value)} />
                                        </div>
                                    ))}
                                 </div>
@@ -358,3 +352,5 @@ export default function AdminSettingsPage() {
         </div>
     );
 }
+
+    
