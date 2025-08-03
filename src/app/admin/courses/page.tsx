@@ -9,18 +9,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw, Link2, Youtube, Package, Package2, GripVertical, Plus, X } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw, X, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { COURSES_PLACEHOLDER } from '@/lib/constants';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronsUpDown } from "lucide-react"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { listAllUsers } from '@/lib/admin-actions';
 
 type Module = {
   title: string;
   description: string;
   videoLink: string;
+};
+
+type User = {
+    uid: string;
+    email: string;
 };
 
 type Course = {
@@ -34,6 +44,7 @@ type Course = {
   image: string;
   dataAiHint?: string;
   modules: Module[];
+  enrolledUserIds?: string[];
 };
 
 const defaultCourse: Partial<Course> = {
@@ -45,26 +56,37 @@ const defaultCourse: Partial<Course> = {
     image: 'https://placehold.co/600x400.png',
     dataAiHint: 'education',
     modules: [{ title: '', description: '', videoLink: '' }],
+    enrolledUserIds: [],
 };
 
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentCourse, setCurrentCourse] = useState<Partial<Course> | null>(null);
+  const [openUserSelect, setOpenUserSelect] = useState(false);
   const { toast } = useToast();
+
+  const fetchUsers = async () => {
+    try {
+        const fetchedUsers = await listAllUsers();
+        setUsers(fetchedUsers);
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to fetch users." });
+    }
+  };
 
   const fetchCourses = async () => {
     setIsLoading(true);
     try {
       const querySnapshot = await getDocs(collection(db, "courses"));
       if (querySnapshot.empty) {
-        // Seed initial data if the collection is empty
         for (const course of COURSES_PLACEHOLDER) {
           const { id, ...courseData } = course;
           await addDoc(collection(db, "courses"), courseData);
         }
-        // Fetch again after seeding
         const seededSnapshot = await getDocs(collection(db, "courses"));
         const coursesList = seededSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(coursesList);
@@ -82,6 +104,7 @@ export default function AdminCoursesPage() {
 
   useEffect(() => {
     fetchCourses();
+    fetchUsers();
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -91,19 +114,16 @@ export default function AdminCoursesPage() {
     try {
         const courseData = { ...currentCourse };
         
-        // Ensure modules is an array
         if (!Array.isArray(courseData.modules)) {
             courseData.modules = [];
         }
 
         if (currentCourse.id) {
-            // Update existing course
             const courseRef = doc(db, "courses", currentCourse.id);
             const { id, ...updateData } = courseData;
             await updateDoc(courseRef, updateData);
             toast({ title: "Success", description: "Course updated successfully." });
         } else {
-            // Add new course
             await addDoc(collection(db, "courses"), courseData);
             toast({ title: "Success", description: "Course added successfully." });
         }
@@ -116,7 +136,6 @@ export default function AdminCoursesPage() {
         toast({ variant: "destructive", title: "Error", description: `Failed to save course. ${error instanceof Error ? error.message : ''}` });
     }
 };
-
 
   const handleDelete = async (courseId: string) => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
@@ -162,7 +181,6 @@ export default function AdminCoursesPage() {
     });
   };
 
-
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
@@ -192,6 +210,54 @@ export default function AdminCoursesPage() {
                     <div className="space-y-2">
                         <Label htmlFor="description">Overall Description</Label>
                         <Textarea id="description" name="description" value={currentCourse.description || ''} onChange={handleFormChange} required />
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Enroll Users</Label>
+                        <Popover open={openUserSelect} onOpenChange={setOpenUserSelect}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openUserSelect}
+                                className="w-full justify-between"
+                                >
+                                {currentCourse.enrolledUserIds && currentCourse.enrolledUserIds.length > 0
+                                    ? `${currentCourse.enrolledUserIds.length} user(s) selected`
+                                    : "Select users..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                                <Command>
+                                <CommandInput placeholder="Search users..." />
+                                <CommandEmpty>No users found.</CommandEmpty>
+                                <CommandGroup>
+                                    {users.map((user) => (
+                                    <CommandItem
+                                        key={user.uid}
+                                        value={user.email}
+                                        onSelect={() => {
+                                            const enrolledIds = currentCourse.enrolledUserIds || [];
+                                            const isSelected = enrolledIds.includes(user.uid);
+                                            const newSelectedIds = isSelected 
+                                                ? enrolledIds.filter(id => id !== user.uid)
+                                                : [...enrolledIds, user.uid];
+                                            setCurrentCourse(prev => prev ? { ...prev, enrolledUserIds: newSelectedIds } : null);
+                                        }}
+                                    >
+                                        <Check
+                                        className={cn(
+                                            "mr-2 h-4 w-4",
+                                            currentCourse.enrolledUserIds?.includes(user.uid) ? "opacity-100" : "opacity-0"
+                                        )}
+                                        />
+                                        {user.email}
+                                    </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -278,7 +344,7 @@ export default function AdminCoursesPage() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Level</TableHead>
-                  <TableHead>Modules</TableHead>
+                  <TableHead>Enrolled Users</TableHead>
                   <TableHead>Goal</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -290,8 +356,8 @@ export default function AdminCoursesPage() {
                     <TableCell>
                       <Badge variant="outline">{course.level}</Badge>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={'secondary'} className="capitalize">{course.modules?.length || 0} Modules</Badge>
+                     <TableCell>
+                      <Badge variant={'secondary'} className="capitalize">{course.enrolledUserIds?.length || 0} Users</Badge>
                     </TableCell>
                     <TableCell>{course.goal}</TableCell>
                     <TableCell>
@@ -327,3 +393,5 @@ export default function AdminCoursesPage() {
     </div>
   );
 }
+
+    

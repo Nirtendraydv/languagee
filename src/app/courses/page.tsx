@@ -2,11 +2,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import CourseCard from '@/components/CourseCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { COURSES_PLACEHOLDER } from '@/lib/constants';
+import { useAuth } from '@/components/AuthProvider';
 
 type Module = {
   title: string;
@@ -25,21 +26,33 @@ type Course = {
   image: string;
   dataAiHint: string;
   modules: Module[];
+  enrolledUserIds?: string[];
 };
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "courses"));
         const coursesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
-        setCourses(coursesList);
+        
+        if (user) {
+            // Filter courses to show only those the user is enrolled in
+            const enrolledCourses = coursesList.filter(course => 
+                course.enrolledUserIds && course.enrolledUserIds.includes(user.uid)
+            );
+            setCourses(enrolledCourses);
+        } else {
+            // Show no courses if user is not logged in
+            setCourses([]);
+        }
       } catch (error) {
         console.error("Error fetching courses: ", error);
-        // Fallback to placeholder data on error
+        // Fallback to placeholder data on error - for demonstration
         setCourses(COURSES_PLACEHOLDER as Course[]);
       } finally {
         setIsLoading(false);
@@ -47,7 +60,7 @@ export default function CoursesPage() {
     };
 
     fetchCourses();
-  }, []);
+  }, [user]);
 
   return (
     <div className="bg-background gradient-bg">
@@ -59,17 +72,24 @@ export default function CoursesPage() {
       </header>
 
       <div className="container mx-auto py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {isLoading ? (
-            Array.from({ length: 6 }).map((_, index) => (
-               <CardSkeleton key={index} />
-            ))
-          ) : (
-            courses.map(course => (
-              <CourseCard key={course.id} course={course} />
-            ))
-          )}
-        </div>
+        {isLoading ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {Array.from({ length: 6 }).map((_, index) => (
+                    <CardSkeleton key={index} />
+                ))}
+            </div>
+        ) : courses.length > 0 ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {courses.map(course => (
+                    <CourseCard key={course.id} course={course} />
+                ))}
+            </div>
+        ) : (
+            <div className="text-center text-muted-foreground p-12 bg-card rounded-lg">
+                <h2 className="text-2xl font-semibold mb-2">No Courses Found</h2>
+                <p>You are not enrolled in any courses yet, or you may need to log in to see your courses.</p>
+            </div>
+        )}
       </div>
     </div>
   );
@@ -86,3 +106,5 @@ const CardSkeleton = () => (
         </div>
     </div>
 );
+
+    

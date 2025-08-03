@@ -2,18 +2,19 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star, Tv, FileVideo, Youtube } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon, Star, Tv, FileVideo, Youtube, Lock } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import CourseCard from '@/components/CourseCard';
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
+import { useAuth } from '@/components/AuthProvider';
 
 type Module = {
   title: string;
@@ -31,6 +32,7 @@ type Course = {
   badge?: string;
   image: string;
   modules: Module[];
+  enrolledUserIds?: string[];
 };
 
 type Tutor = {
@@ -42,19 +44,21 @@ type Tutor = {
 
 export default function CourseDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const courseId = params.id as string;
   const [course, setCourse] = useState<Course | null>(null);
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [relatedCourses, setRelatedCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
-    if (!courseId) return;
+    if (isAuthLoading) return; // Wait for auth state to be determined
 
     const fetchCourseData = async () => {
       setIsLoading(true);
       try {
-        // Fetch course details
         const courseRef = doc(db, 'courses', courseId);
         const courseSnap = await getDoc(courseRef);
 
@@ -62,7 +66,15 @@ export default function CourseDetailPage() {
           const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
           setCourse(courseData);
 
-          // Fetch related courses
+          const enrolled = courseData.enrolledUserIds?.includes(user?.uid || '') || false;
+          setIsEnrolled(enrolled);
+          
+          if (!enrolled) {
+             // Optional: You might want to redirect or just show a lock screen
+             console.log("User not enrolled in this course.");
+          }
+
+
           const relatedQuery = query(
             collection(db, 'courses'),
             where('level', '==', courseData.level),
@@ -70,14 +82,13 @@ export default function CourseDetailPage() {
             limit(3)
           );
           const relatedSnapshot = await getDocs(relatedQuery);
-          const relatedList = relatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+          const relatedList = relatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course)).filter(c => c.enrolledUserIds?.includes(user?.uid || ''));
           setRelatedCourses(relatedList);
 
         } else {
           console.log("No such course!");
         }
 
-        // Fetch tutors
         const tutorsSnapshot = await getDocs(collection(db, 'tutors'));
         const tutorsList = tutorsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tutor));
         setTutors(tutorsList);
@@ -88,12 +99,14 @@ export default function CourseDetailPage() {
         setIsLoading(false);
       }
     };
+    
+    if (courseId) {
+        fetchCourseData();
+    }
+  }, [courseId, user, isAuthLoading, router]);
 
-    fetchCourseData();
-  }, [courseId]);
 
-
-  if (isLoading) {
+  if (isLoading || isAuthLoading) {
     return (
       <div className="container mx-auto py-20 text-center flex justify-center items-center h-[80vh]">
         <Loader2 className="h-16 w-16 animate-spin" />
@@ -109,6 +122,22 @@ export default function CourseDetailPage() {
           <Button variant="link" className="mt-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Courses
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  if (!isEnrolled) {
+     return (
+      <div className="container mx-auto py-20 text-center flex flex-col items-center justify-center h-[80vh]">
+        <Lock className="h-16 w-16 text-destructive mb-4" />
+        <h1 className="text-4xl font-bold">Access Denied</h1>
+        <p className="text-muted-foreground mt-2">You are not enrolled in this course.</p>
+        <Link href="/courses">
+          <Button variant="link" className="mt-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to My Courses
           </Button>
         </Link>
       </div>
@@ -173,7 +202,7 @@ export default function CourseDetailPage() {
             <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
                 <h3 className="text-2xl font-bold font-headline mb-4">Course Content</h3>
                  {course.modules && course.modules.length > 0 ? (
-                    <Accordion type="single" collapsible className="w-full">
+                    <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
                         {course.modules.map((module, index) => (
                              <AccordionItem key={index} value={`item-${index}`}>
                                 <AccordionTrigger className="text-lg font-semibold hover:no-underline">
@@ -252,3 +281,5 @@ export default function CourseDetailPage() {
     </div>
   );
 }
+
+    
