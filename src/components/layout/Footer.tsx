@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -9,6 +10,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const TwitterIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -32,14 +36,47 @@ const newsletterFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
 });
 
+type FooterContent = {
+    address: string;
+    email: string;
+    phone: string;
+}
+
 export default function Footer() {
     const { toast } = useToast();
+    const [siteName, setSiteName] = useState("English Excellence");
+    const [footerContent, setFooterContent] = useState<FooterContent>({ address: '', email: '', phone: '' });
+
     const form = useForm<z.infer<typeof newsletterFormSchema>>({
         resolver: zodResolver(newsletterFormSchema),
         defaultValues: {
           email: "",
         },
     });
+
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                const siteNameRef = doc(db, "settings", "siteConfig");
+                const homepageRef = doc(db, "settings", "homepageConfig");
+
+                const [siteNameSnap, homepageSnap] = await Promise.all([
+                    getDoc(siteNameRef),
+                    getDoc(homepageRef)
+                ]);
+
+                if (siteNameSnap.exists()) {
+                    setSiteName(siteNameSnap.data().siteName || "English Excellence");
+                }
+                 if (homepageSnap.exists()) {
+                    setFooterContent(homepageSnap.data().footer);
+                }
+            } catch (error) {
+                console.error("Error fetching footer content:", error);
+            }
+        };
+        fetchContent();
+    }, []);
 
     const onSubmit = async (values: z.infer<typeof newsletterFormSchema>) => {
         // Simulate API call
@@ -60,7 +97,7 @@ export default function Footer() {
                     <div className="space-y-4 col-span-1">
                         <Link href="/" className="flex items-center gap-2">
                           <Globe className="h-7 w-7 text-primary" />
-                          <span className="font-headline text-2xl font-bold">English Excellence</span>
+                          <span className="font-headline text-2xl font-bold">{siteName}</span>
                         </Link>
                         <p className="text-muted-foreground">Your journey to English fluency starts here. Personalized tutoring to help you succeed.</p>
                         <div className="flex space-x-4">
@@ -81,8 +118,9 @@ export default function Footer() {
                     <div>
                         <h3 className="font-headline font-semibold">Contact Us</h3>
                          <ul className="mt-4 space-y-2 text-muted-foreground">
-                           <li className="flex items-center gap-2"><Mail size={16} /> <a href="mailto:contact@englishexcellence.com" className="hover:text-primary">contact@englishexcellence.com</a></li>
-                           <li className="flex items-center gap-2"><Phone size={16} /> +1 (555) 123-4567</li>
+                           <li className="flex items-center gap-2"><Mail size={16} /> <a href={`mailto:${footerContent.email}`} className="hover:text-primary">{footerContent.email}</a></li>
+                           <li className="flex items-center gap-2"><Phone size={16} /> {footerContent.phone}</li>
+                            <li className="flex items-center gap-2"><Globe size={16} /> {footerContent.address}</li>
                            <li><Link href="/contact" className="text-muted-foreground hover:text-primary">Contact Form</Link></li>
                         </ul>
                     </div>
@@ -111,9 +149,11 @@ export default function Footer() {
                     </div>
                 </div>
                 <div className="mt-12 border-t pt-8 text-center text-muted-foreground">
-                    <p>&copy; {new Date().getFullYear()} English Excellence. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
                 </div>
             </div>
         </footer>
     )
 }
+
+    

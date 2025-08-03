@@ -1,4 +1,6 @@
 
+"use client";
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,14 +10,67 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { BookOpen, Globe, UserCheck, Star, Zap, Award, Calendar, Users, Target } from 'lucide-react';
 import FloatingLetters from '@/components/FloatingLetters';
 import { TESTIMONIALS } from '@/lib/constants';
+import { useEffect, useState } from 'react';
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+
+type HomepageContent = {
+    hero: { title: string; subtitle: string; buttonText: string; imageUrl: string; };
+    howItWorks: { title: string; subtitle: string; steps: { title: string; description: string; }[]; };
+    features: { title: string; items: { title: string; description: string; }[]; };
+    whyUs: { title: string; subtitle: string; imageUrl: string; points: { title: string; description: string; }[]; };
+    testimonials: { title: string; };
+    cta: { title: string; subtitle: string; buttonText: string; };
+};
+
+const iconMap: { [key: string]: React.ElementType } = {
+  '1. Sign Up': UserCheck,
+  '2. Schedule a Class': Globe,
+  '3. Start Learning': BookOpen,
+  'Personalized Learning': Target,
+  'Flexible Scheduling': Calendar,
+  'Interactive Classes': Zap,
+  'Dedicated Tutors': Users,
+  'Interactive Learning': Zap,
+  'Expert Tutors': Award,
+  'Personalized Path': Star,
+};
+
 
 export default function Home() {
+  const [content, setContent] = useState<HomepageContent | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const docRef = doc(db, "settings", "homepageConfig");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setContent(docSnap.data() as HomepageContent);
+        } else {
+          console.log("No homepage config found!");
+        }
+      } catch (error) {
+        console.error("Error fetching homepage content:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchContent();
+  }, []);
+
+  if (isLoading || !content) {
+    return <HomepageSkeleton />;
+  }
+
   return (
     <div className="flex flex-col items-center">
       <section className="w-full h-[90vh] md:h-screen relative overflow-hidden flex items-center justify-center text-center text-white bg-gradient-to-br from-primary via-blue-500 to-indigo-600">
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1453928582365-b6ad3332aab9?q=80&w=1920&auto=format&fit=crop"
+            src={content.hero.imageUrl}
             alt="Person learning on a laptop"
             data-ai-hint="laptop learning"
             layout="fill"
@@ -26,14 +81,14 @@ export default function Home() {
         </div>
         <div className="relative z-10 p-4 animate-fade-in-up">
           <h1 className="text-5xl md:text-7xl font-headline font-bold mb-4 text-shadow-lg">
-            Learn English Anywhere <span className="animate-pulse">🌍</span>
+            {content.hero.title}
           </h1>
           <p className="text-lg md:text-2xl mb-8 max-w-3xl mx-auto font-body">
-            Join English Excellence for an immersive, fun, and effective way to master English with our dedicated tutors.
+            {content.hero.subtitle}
           </p>
           <Link href="/courses">
             <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full text-lg px-10 py-6 animate-glow">
-              Start Learning Now
+              {content.hero.buttonText}
             </Button>
           </Link>
         </div>
@@ -41,78 +96,45 @@ export default function Home() {
 
       <section id="how-it-works" className="w-full py-20 bg-background">
         <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-headline font-bold mb-2">How It Works</h2>
-          <p className="text-muted-foreground text-lg mb-12">Three simple steps to start your English learning journey.</p>
+          <h2 className="text-4xl font-headline font-bold mb-2">{content.howItWorks.title}</h2>
+          <p className="text-muted-foreground text-lg mb-12">{content.howItWorks.subtitle}</p>
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center p-6 border-2 border-transparent hover:border-primary transition-all duration-300 transform hover:-translate-y-2">
-              <CardHeader>
-                <div className="mx-auto bg-primary/10 rounded-full p-4 w-20 h-20 flex items-center justify-center">
-                  <UserCheck className="w-10 h-10 text-primary" />
-                </div>
-                <CardTitle className="font-headline text-2xl mt-4">1. Sign Up</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Create your free account in seconds and tell us about your learning goals.</p>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-6 border-2 border-transparent hover:border-primary transition-all duration-300 transform hover:-translate-y-2">
-              <CardHeader>
-                <div className="mx-auto bg-primary/10 rounded-full p-4 w-20 h-20 flex items-center justify-center">
-                  <Globe className="w-10 h-10 text-primary" />
-                </div>
-                <CardTitle className="font-headline text-2xl mt-4">2. Schedule a Class</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Meet our tutors and book a lesson that fits your schedule.</p>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-6 border-2 border-transparent hover:border-primary transition-all duration-300 transform hover:-translate-y-2">
-              <CardHeader>
-                <div className="mx-auto bg-primary/10 rounded-full p-4 w-20 h-20 flex items-center justify-center">
-                  <BookOpen className="w-10 h-10 text-primary" />
-                </div>
-                <CardTitle className="font-headline text-2xl mt-4">3. Start Learning</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Join live classes, access resources, and track your progress anytime, anywhere.</p>
-              </CardContent>
-            </Card>
+            {content.howItWorks.steps.map((step, index) => {
+               const Icon = iconMap[step.title] || BookOpen;
+               return (
+                <Card key={index} className="text-center p-6 border-2 border-transparent hover:border-primary transition-all duration-300 transform hover:-translate-y-2">
+                  <CardHeader>
+                    <div className="mx-auto bg-primary/10 rounded-full p-4 w-20 h-20 flex items-center justify-center">
+                      <Icon className="w-10 h-10 text-primary" />
+                    </div>
+                    <CardTitle className="font-headline text-2xl mt-4">{step.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{step.description}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>
       
       <section id="features" className="w-full py-20 bg-background">
         <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-headline font-bold mb-12">A Learning Experience Like No Other</h2>
+          <h2 className="text-4xl font-headline font-bold mb-12">{content.features.title}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="flex flex-col items-center p-4">
-              <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <Target className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="text-xl font-headline font-semibold mb-2">Personalized Learning</h3>
-              <p className="text-muted-foreground text-center">Lessons tailored to your individual goals and learning style.</p>
-            </div>
-            <div className="flex flex-col items-center p-4">
-               <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <Calendar className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="text-xl font-headline font-semibold mb-2">Flexible Scheduling</h3>
-              <p className="text-muted-foreground text-center">Book classes at times that are convenient for you.</p>
-            </div>
-            <div className="flex flex-col items-center p-4">
-               <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <Zap className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="text-xl font-headline font-semibold mb-2">Interactive Classes</h3>
-              <p className="text-muted-foreground text-center">Engaging, live sessions that make learning effective and fun.</p>
-            </div>
-            <div className="flex flex-col items-center p-4">
-               <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <Users className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="text-xl font-headline font-semibold mb-2">Dedicated Tutors</h3>
-              <p className="text-muted-foreground text-center">Learn from our two passionate and experienced English tutors.</p>
-            </div>
+            {content.features.items.map((item, index) => {
+              const Icon = iconMap[item.title] || Zap;
+              return (
+                <div key={index} className="flex flex-col items-center p-4">
+                  <div className="p-4 bg-primary/10 rounded-full mb-4">
+                    <Icon className="w-10 h-10 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-headline font-semibold mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground text-center">{item.description}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -121,43 +143,30 @@ export default function Home() {
         <div className="container mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl font-headline font-bold mb-4">Why Choose English Excellence?</h2>
+              <h2 className="text-4xl font-headline font-bold mb-4">{content.whyUs.title}</h2>
               <p className="text-lg text-muted-foreground mb-8">
-                We provide a comprehensive and engaging learning experience designed for success. Our unique approach sets us apart.
+                {content.whyUs.subtitle}
               </p>
               <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary text-primary-foreground rounded-full p-2">
-                    <Zap size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-headline font-semibold">Interactive Learning</h3>
-                    <p className="text-muted-foreground">Our unique approach and virtual tools make learning unforgettable. We use state-of-the-art technology to create an immersive environment.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary text-primary-foreground rounded-full p-2">
-                    <Award size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-headline font-semibold">Expert Tutors</h3>
-                    <p className="text-muted-foreground">Learn from our certified, passionate, and dedicated tutors who have years of experience helping students succeed.</p>
-                  </div>
-                </div>
-                 <div className="flex items-start gap-4">
-                  <div className="bg-primary text-primary-foreground rounded-full p-2">
-                    <Star size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-headline font-semibold">Personalized Path</h3>
-                    <p className="text-muted-foreground">We create customized lesson plans tailored to your specific level, goals, and interests to ensure you get the most out of every class.</p>
-                  </div>
-                </div>
+                {content.whyUs.points.map((point, index) => {
+                  const Icon = iconMap[point.title] || Star;
+                  return (
+                    <div key={index} className="flex items-start gap-4">
+                      <div className="bg-primary text-primary-foreground rounded-full p-2">
+                        <Icon size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-headline font-semibold">{point.title}</h3>
+                        <p className="text-muted-foreground">{point.description}</p>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
             <div>
               <Image 
-                src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=600&auto=format&fit=crop"
+                src={content.whyUs.imageUrl}
                 alt="Two people discussing and learning"
                 data-ai-hint="people learning"
                 width={600}
@@ -171,7 +180,7 @@ export default function Home() {
 
       <section id="testimonials" className="w-full py-20 bg-background">
         <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-headline font-bold mb-12">What Our Students Say</h2>
+          <h2 className="text-4xl font-headline font-bold mb-12">{content.testimonials.title}</h2>
           <Carousel
             opts={{
               align: 'start',
@@ -210,11 +219,11 @@ export default function Home() {
 
       <section className="w-full py-20 bg-primary text-center text-white">
         <div className="container mx-auto">
-          <h2 className="text-4xl font-headline font-bold mb-4">Ready to Start Your Journey?</h2>
-          <p className="text-lg mb-8">Join thousands of students and unlock your potential with English Excellence.</p>
+          <h2 className="text-4xl font-headline font-bold mb-4">{content.cta.title}</h2>
+          <p className="text-lg mb-8">{content.cta.subtitle}</p>
           <Link href="/courses">
             <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90 rounded-full text-lg px-10 py-6">
-              Explore Courses
+              {content.cta.buttonText}
             </Button>
           </Link>
         </div>
@@ -222,3 +231,44 @@ export default function Home() {
     </div>
   );
 }
+
+const HomepageSkeleton = () => (
+  <div className="flex flex-col items-center w-full">
+    {/* Hero Skeleton */}
+    <div className="w-full h-screen bg-muted flex items-center justify-center">
+      <div className="space-y-4 text-center">
+        <Skeleton className="h-16 w-96 mx-auto" />
+        <Skeleton className="h-8 w-[500px] mx-auto" />
+        <Skeleton className="h-14 w-48 mx-auto rounded-full" />
+      </div>
+    </div>
+    
+    {/* Sections Skeleton */}
+    <div className="container mx-auto py-20 space-y-20">
+      <div className="text-center space-y-4">
+          <Skeleton className="h-12 w-80 mx-auto" />
+          <Skeleton className="h-6 w-[450px] mx-auto" />
+          <div className="grid md:grid-cols-3 gap-8 pt-8">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+      </div>
+       <div className="grid md:grid-cols-2 gap-16 items-center">
+        <div className="space-y-6">
+          <Skeleton className="h-12 w-96" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-4/5" />
+          <div className="space-y-4 pt-4">
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        </div>
+        <Skeleton className="h-[500px] w-full" />
+      </div>
+    </div>
+  </div>
+);
+
+    

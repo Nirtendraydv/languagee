@@ -20,7 +20,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -34,8 +35,16 @@ const formSchema = z.object({
   }),
 });
 
+type ContactInfo = {
+    email: string;
+    phone: string;
+    address: string;
+}
+
 export default function ContactPage() {
   const { toast } = useToast();
+  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,6 +53,21 @@ export default function ContactPage() {
       message: "",
     },
   });
+
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const docRef = doc(db, "settings", "homepageConfig");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setContactInfo(docSnap.data().footer);
+        }
+      } catch (error) {
+        console.error("Error fetching contact info:", error);
+      }
+    };
+    fetchContactInfo();
+  }, []);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -80,35 +104,39 @@ export default function ContactPage() {
             <Card>
                 <CardContent className="p-8">
                     <h2 className="text-3xl font-bold font-headline mb-6">Contact Information</h2>
-                    <div className="space-y-6 text-lg">
-                         <div className="flex items-center gap-4">
-                            <div className="bg-primary/10 p-3 rounded-full">
-                                <Mail className="w-6 h-6 text-primary" />
+                    {contactInfo ? (
+                        <div className="space-y-6 text-lg">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-primary/10 p-3 rounded-full">
+                                    <Mail className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold">Email</h3>
+                                    <a href={`mailto:${contactInfo.email}`} className="text-muted-foreground hover:text-primary transition-colors">{contactInfo.email}</a>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="font-semibold">Email</h3>
-                                <a href="mailto:contact@englishexcellence.com" className="text-muted-foreground hover:text-primary transition-colors">contact@englishexcellence.com</a>
+                            <div className="flex items-center gap-4">
+                                <div className="bg-primary/10 p-3 rounded-full">
+                                    <Phone className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold">Phone</h3>
+                                    <p className="text-muted-foreground">{contactInfo.phone}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="bg-primary/10 p-3 rounded-full">
+                                    <MapPin className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold">Office</h3>
+                                    <p className="text-muted-foreground">{contactInfo.address}</p>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <div className="bg-primary/10 p-3 rounded-full">
-                                <Phone className="w-6 h-6 text-primary" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold">Phone</h3>
-                                <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                            </div>
-                        </div>
-                         <div className="flex items-center gap-4">
-                            <div className="bg-primary/10 p-3 rounded-full">
-                                <MapPin className="w-6 h-6 text-primary" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold">Office</h3>
-                                <p className="text-muted-foreground">123 Learning Lane, Education City, USA</p>
-                            </div>
-                        </div>
-                    </div>
+                    ) : (
+                        <p>Loading contact information...</p>
+                    )}
                      <p className="mt-8 text-muted-foreground">
                         For specific questions about our tutors, please visit the <Link href="/tutors" className="text-primary hover:underline">Tutors page</Link>.
                     </p>
@@ -177,3 +205,5 @@ export default function ContactPage() {
     </div>
   );
 }
+
+    
