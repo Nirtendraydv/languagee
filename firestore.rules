@@ -3,47 +3,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to identify an admin user
     function isAdmin() {
       return request.auth.token.email == 'admin@example.com';
     }
 
-    // Default deny all reads and writes unless explicitly allowed
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // Allow admin full access to all user documents
-    match /users/{userId} {
+    // Admins have full access to everything. This rule is evaluated first.
+    match /{path=**} {
       allow read, write: if isAdmin();
-      // Allow a logged-in user to read their own document
-      allow read: if request.auth != null && request.auth.uid == userId;
     }
-
+    
+    // Publicly readable collections (for non-admins)
     match /courses/{courseId} {
-      allow read: if true; // Publicly readable
-      allow write: if isAdmin(); // Admin can create, update, delete
+      allow read: if true;
     }
     
     match /tutors/{tutorId} {
-      allow read: if true; // Publicly readable
-      allow write: if isAdmin(); // Admin can create, update, delete
+      allow read: if true;
     }
 
-    match /settings/{settingId} {
-      allow read: if true; // Publicly readable
-      allow write: if isAdmin(); // Admin can create, update, delete
+    match /settings/homepageConfig {
+       allow read: if true;
     }
 
+    // Allow anyone to create inquiries (contact form)
     match /inquiries/{inquiryId} {
-      allow create: if true; // Anyone can submit the contact form
-      allow read, delete: if isAdmin(); // Admin can read and delete inquiries
+      allow create: if true;
     }
 
+    // Allow authenticated users to create and read their own course requests
     match /courseRequests/{requestId} {
-      allow create: if request.auth != null; // Authenticated users can create requests
-      allow read: if request.auth != null && request.resource.data.userId == request.auth.uid; // User can see their own request status
-      allow read, delete: if isAdmin(); // Admin can read all requests and delete them (on approve)
+      allow create: if request.auth != null;
+      allow read: if request.auth.uid == resource.data.userId;
+    }
+    
+    // Allow users to read and manage their own user document
+    match /users/{userId} {
+      allow read, create, update: if request.auth.uid == userId;
     }
   }
 }
