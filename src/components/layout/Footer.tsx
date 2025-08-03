@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form"
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 
 const TwitterIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -55,27 +55,21 @@ export default function Footer() {
     });
 
     useEffect(() => {
-        const fetchContent = async () => {
-            try {
-                const siteNameRef = doc(db, "settings", "siteConfig");
-                const homepageRef = doc(db, "settings", "homepageConfig");
+        const settingsRef = doc(db, "settings", "homepageConfig");
 
-                const [siteNameSnap, homepageSnap] = await Promise.all([
-                    getDoc(siteNameRef),
-                    getDoc(homepageRef)
-                ]);
-
-                if (siteNameSnap.exists()) {
-                    setSiteName(siteNameSnap.data().siteName || "English Excellence");
-                }
-                 if (homepageSnap.exists()) {
-                    setFooterContent(homepageSnap.data().footer);
-                }
-            } catch (error) {
-                console.error("Error fetching footer content:", error);
+        const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setFooterContent(data.footer);
+                setSiteName(data.hero?.title || "English Excellence"); 
+            } else {
+                console.log("No such document in settings!");
             }
-        };
-        fetchContent();
+        }, (error) => {
+            console.error("Error fetching footer content:", error);
+        });
+
+        return () => unsubscribe();
     }, []);
 
     const onSubmit = async (values: z.infer<typeof newsletterFormSchema>) => {
@@ -155,5 +149,3 @@ export default function Footer() {
         </footer>
     )
 }
-
-    

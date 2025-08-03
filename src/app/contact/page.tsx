@@ -20,8 +20,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -44,6 +45,7 @@ type ContactInfo = {
 export default function ContactPage() {
   const { toast } = useToast();
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,18 +57,18 @@ export default function ContactPage() {
   });
 
   useEffect(() => {
-    const fetchContactInfo = async () => {
-      try {
-        const docRef = doc(db, "settings", "homepageConfig");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setContactInfo(docSnap.data().footer);
-        }
-      } catch (error) {
-        console.error("Error fetching contact info:", error);
+    const settingsRef = doc(db, "settings", "homepageConfig");
+    const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setContactInfo(docSnap.data().footer);
       }
-    };
-    fetchContactInfo();
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching contact info:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -104,7 +106,9 @@ export default function ContactPage() {
             <Card>
                 <CardContent className="p-8">
                     <h2 className="text-3xl font-bold font-headline mb-6">Contact Information</h2>
-                    {contactInfo ? (
+                    {isLoading ? (
+                        <ContactInfoSkeleton />
+                    ) : contactInfo ? (
                         <div className="space-y-6 text-lg">
                             <div className="flex items-center gap-4">
                                 <div className="bg-primary/10 p-3 rounded-full">
@@ -135,7 +139,7 @@ export default function ContactPage() {
                             </div>
                         </div>
                     ) : (
-                        <p>Loading contact information...</p>
+                        <p>Contact information could not be loaded.</p>
                     )}
                      <p className="mt-8 text-muted-foreground">
                         For specific questions about our tutors, please visit the <Link href="/tutors" className="text-primary hover:underline">Tutors page</Link>.
@@ -206,4 +210,28 @@ export default function ContactPage() {
   );
 }
 
-    
+const ContactInfoSkeleton = () => (
+    <div className="space-y-6">
+        <div className="flex items-center gap-4">
+            <Skeleton className="w-12 h-12 rounded-full" />
+            <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-48" />
+            </div>
+        </div>
+        <div className="flex items-center gap-4">
+            <Skeleton className="w-12 h-12 rounded-full" />
+            <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-32" />
+            </div>
+        </div>
+        <div className="flex items-center gap-4">
+            <Skeleton className="w-12 h-12 rounded-full" />
+            <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-64" />
+            </div>
+        </div>
+    </div>
+);

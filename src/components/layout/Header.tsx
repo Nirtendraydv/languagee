@@ -9,7 +9,7 @@ import { Menu, Globe, UserCog } from "lucide-react";
 import NavItem from "./NavItem";
 import { useAuth } from "../AuthProvider";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 
 const ADMIN_EMAIL = 'admin@example.com';
 
@@ -19,18 +19,18 @@ export default function Header() {
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchSiteName = async () => {
-      try {
-        const docRef = doc(db, "settings", "siteConfig");
-        const docSnap = await getDoc(docRef);
+    const settingsRef = doc(db, "settings", "homepageConfig");
+    
+    const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
         if (docSnap.exists()) {
-          setSiteName(docSnap.data().siteName || "English Excellence");
+            const data = docSnap.data();
+            setSiteName(data.hero?.title || "English Excellence");
         }
-      } catch (error) {
+    }, (error) => {
         console.error("Error fetching site name:", error);
-      }
-    };
-    fetchSiteName();
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleLogout = async () => {
