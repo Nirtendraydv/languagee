@@ -40,42 +40,32 @@ export default function UsersPage() {
       setIsLoading(true);
       setPermissionError(null);
       try {
-          // 1. Fetch all users from Firebase Auth using the server action
           const { users: authUsers, error: authError } = await listAllAuthUsers();
 
           if (authError) {
             setPermissionError(authError);
-            setIsLoading(false);
             setUsers([]);
             return;
           }
 
-          // If no users in Auth, check if Firestore is also empty, then populate with placeholders
           if (authUsers.length === 0) {
               const firestoreUsersSnapshot = await getDocs(collection(db, "users"));
               if(firestoreUsersSnapshot.empty && USERS_PLACEHOLDER.length > 0) {
                   for (const user of USERS_PLACEHOLDER) {
-                      const userRef = doc(db, "users", user.uid);
-                      // This is for placeholder data only, not for real user creation
-                      await setDoc(userRef, { email: user.email, uid: user.uid, createdAt: user.createdAt });
+                      await setDoc(doc(db, "users", user.uid), { email: user.email, uid: user.uid, createdAt: user.createdAt });
                   }
               }
           }
           
-          // 2. Fetch all courses from Firestore to map enrollments
           const coursesSnapshot = await getDocs(collection(db, "courses"));
           const courses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
 
-          // 3. Fetch all user documents from Firestore 'users' collection to get metadata like creation date
           const firestoreUsersSnapshot = await getDocs(collection(db, "users"));
           const firestoreUsers = firestoreUsersSnapshot.docs.map(doc => doc.data() as User);
 
-          // 4. Merge Auth users (as the source of truth) with Firestore data
           const usersWithCourses = authUsers.map(authUser => {
               if (!authUser) return null;
-              // Find matching user doc from firestore
               const firestoreUser = firestoreUsers.find(u => u.uid === authUser.uid);
-              // Find courses the user is enrolled in
               const enrolledCourses = courses.filter(course => course.enrolledUserIds?.includes(authUser.uid));
               
               return { 
@@ -98,10 +88,10 @@ export default function UsersPage() {
 
 
   useEffect(() => {
-    fetchData();
+    if (!permissionError) {
+        fetchData();
+    }
 
-    // Set up a listener on the courses collection to refetch data if enrollments change
-    // This ensures the user's course list is up-to-date
     const unsubscribe = onSnapshot(collection(db, "courses"), () => {
         if (!permissionError) {
           fetchData();

@@ -60,7 +60,10 @@ export default function ContactPage() {
     const settingsRef = doc(db, "settings", "homepageConfig");
     const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
       if (docSnap.exists()) {
-        setContactInfo(docSnap.data().footer);
+        const data = docSnap.data();
+        if (data && data.footer) {
+          setContactInfo(data.footer);
+        }
       }
       setIsLoading(false);
     }, (error) => {
