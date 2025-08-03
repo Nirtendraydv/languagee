@@ -7,9 +7,10 @@ import { collection, getDocs, deleteDoc, doc, orderBy, query, Timestamp } from '
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Trash2, Loader2, RefreshCw } from 'lucide-react';
+import { Trash2, Loader2, RefreshCw, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 type Inquiry = {
   id: string;
@@ -51,7 +52,7 @@ export default function InquiriesPage() {
 
   useEffect(() => {
     fetchInquiries();
-  }, []);
+  }, [toast]);
 
   const handleDelete = async (inquiryId: string) => {
     if (!window.confirm("Are you sure you want to delete this inquiry?")) return;
@@ -95,7 +96,7 @@ export default function InquiriesPage() {
                 <TableHead>Received</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Message</TableHead>
+                <TableHead className="hidden md:table-cell">Message</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -105,16 +106,33 @@ export default function InquiriesPage() {
                   <TableCell className="font-medium">{format(inquiry.createdAt, 'PPp')}</TableCell>
                   <TableCell>{inquiry.name}</TableCell>
                   <TableCell>{inquiry.email}</TableCell>
-                  <TableCell className="max-w-xs">{inquiry.message}</TableCell>
+                  <TableCell className="max-w-xs truncate hidden md:table-cell">{inquiry.message}</TableCell>
                   <TableCell>
-                    <Button 
-                      variant="destructive" 
-                      size="icon"
-                      onClick={() => handleDelete(inquiry.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Delete</span>
-                    </Button>
+                    <div className="flex gap-2">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="icon">
+                                    <Eye className="h-4 w-4" />
+                                    <span className="sr-only">View Message</span>
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>From: {inquiry.name}</DialogTitle>
+                                    <DialogDescription>Received on {format(inquiry.createdAt, 'PPp')}</DialogDescription>
+                                </DialogHeader>
+                                <p className="py-4">{inquiry.message}</p>
+                            </DialogContent>
+                        </Dialog>
+                        <Button 
+                            variant="destructive" 
+                            size="icon"
+                            onClick={() => handleDelete(inquiry.id)}
+                            >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                        </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

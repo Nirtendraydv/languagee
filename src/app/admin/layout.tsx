@@ -23,6 +23,7 @@ import {
   BookOpen,
   Users as UsersIcon,
   Settings,
+  Bell,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -75,6 +76,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <SidebarMenuButton>
                   <MessageSquare />
                   <span>Inquiries</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <Link href="/admin/requests" passHref>
+                <SidebarMenuButton>
+                  <Bell />
+                  <span>Requests</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>

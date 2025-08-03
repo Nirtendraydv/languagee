@@ -13,8 +13,9 @@ import { ArrowLeft, BookOpen, Calendar, Target, Users, Loader2, Link as LinkIcon
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import CourseCard from '@/components/CourseCard';
 import { db } from '@/lib/firebase';
-import { collection, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, limit, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/components/AuthProvider';
+import { useToast } from '@/hooks/use-toast';
 
 type Module = {
   title: string;
@@ -45,13 +46,18 @@ type Tutor = {
 export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const { user, isLoading: isAuthLoading } = useAuth();
   const courseId = params.id as string;
+  
   const [course, setCourse] = useState<Course | null>(null);
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [relatedCourses, setRelatedCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [hasRequested, setHasRequested] = useState(false);
+  
+  const isEnrolled = course?.enrolledUserIds?.includes(user?.uid || '') || false;
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -65,8 +71,11 @@ export default function CourseDetailPage() {
           const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
           setCourse(courseData);
           
-          const enrolled = courseData.enrolledUserIds?.includes(user?.uid || '') || false;
-          setIsEnrolled(enrolled);
+          if (user) {
+              const q = query(collection(db, "courseRequests"), where("userId", "==", user.uid), where("courseId", "==", courseId));
+              const requestSnapshot = await getDocs(q);
+              setHasRequested(!requestSnapshot.empty);
+          }
 
           const relatedQuery = query(
             collection(db, 'courses'),
@@ -96,6 +105,35 @@ export default function CourseDetailPage() {
     fetchCourseData();
   }, [courseId, user]);
 
+
+  const handleRequestAccess = async () => {
+      if (!user || !course) return;
+      setIsRequesting(true);
+      try {
+          await addDoc(collection(db, "courseRequests"), {
+              userId: user.uid,
+              userEmail: user.email,
+              courseId: course.id,
+              courseTitle: course.title,
+              createdAt: serverTimestamp(),
+              status: "pending",
+          });
+          toast({
+              title: "Request Sent!",
+              description: "Your request to join this course has been sent. An admin will review it shortly.",
+          });
+          setHasRequested(true);
+      } catch (error) {
+          console.error("Error sending request:", error);
+          toast({
+              variant: "destructive",
+              title: "Error",
+              description: "There was a problem sending your request. Please try again.",
+          });
+      } finally {
+          setIsRequesting(false);
+      }
+  }
 
   if (isLoading || isAuthLoading) {
     return (
@@ -248,12 +286,19 @@ export default function CourseDetailPage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground mb-4 text-sm">Enroll in this course to gain access to all modules and video content.</p>
-                         <Link href={user ? "/contact?course_request=true" : "/signup"} className="w-full">
-                            <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg py-6">
-                            <Sparkles className="mr-2" />
-                            {user ? 'Request Access' : 'Sign Up to Enroll'}
+                         {!user ? (
+                           <Link href="/signup" className="w-full">
+                                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg py-6">
+                                    <Sparkles className="mr-2" />
+                                    Sign Up to Enroll
+                                </Button>
+                            </Link>
+                         ) : (
+                            <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" onClick={handleRequestAccess} disabled={isRequesting || hasRequested}>
+                                {isRequesting ? <Loader2 className="h-6 w-6 animate-spin"/> : <Sparkles className="mr-2" />}
+                                {hasRequested ? 'Request Sent!' : 'Request Access'}
                             </Button>
-                        </Link>
+                         )}
                         <p className="text-xs text-muted-foreground text-center mt-2">An admin will grant you access after your request.</p>
                     </CardContent>
                     </>
