@@ -73,8 +73,8 @@ export default function Home() {
             src={content.hero.imageUrl}
             alt="Person learning on a laptop"
             data-ai-hint="laptop learning"
-            layout="fill"
-            objectFit="cover"
+            fill
+            style={{objectFit: 'cover'}}
             className="opacity-20"
             priority
           />
@@ -170,8 +170,8 @@ export default function Home() {
                 src={content.whyUs.imageUrl}
                 alt="Two people discussing and learning"
                 data-ai-hint="people learning"
-                layout="fill"
-                objectFit="cover"
+                fill
+                style={{objectFit: 'cover'}}
                 className="rounded-lg"
               />
             </div>

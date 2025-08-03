@@ -81,7 +81,11 @@ export default function UsersPage() {
 
       } catch (error: any) {
           console.error("Error fetching data:", error);
-          toast({ variant: "destructive", title: "Error", description: "An unexpected error occurred while fetching user or course data." });
+          if (error.message.includes("permission-denied")) {
+             setPermissionError("Could not list users. The service account does not have the 'Firebase Authentication Admin' role. Please follow the setup instructions.");
+          } else {
+             toast({ variant: "destructive", title: "Error", description: "An unexpected error occurred while fetching user or course data." });
+          }
       } finally {
           setIsLoading(false);
       }

@@ -75,8 +75,8 @@ export default function TutorsPage() {
                     src="https://images.unsplash.com/photo-1516542076529-1ea0855399f2?q=80&w=800&auto=format&fit=crop"
                     alt="Happy student learning online"
                     data-ai-hint="student online"
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{objectFit: 'cover'}}
                 />
             </div>
             <div>

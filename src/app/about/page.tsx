@@ -65,8 +65,8 @@ export default function AboutPage() {
                     src="https://images.unsplash.com/photo-1522881451255-f592fa93022c?q=80&w=800&auto=format&fit=crop"
                     alt="Two tutors collaborating"
                     data-ai-hint="tutors collaborating"
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{objectFit: 'cover'}}
                 />
             </div>
             <div>

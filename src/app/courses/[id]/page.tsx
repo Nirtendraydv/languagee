@@ -181,8 +181,8 @@ export default function CourseDetailPage() {
                 <Image
                     src={course.image || 'https://placehold.co/800x400.png'}
                     alt={course.title}
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{objectFit: 'cover'}}
                 />
                  {course.badge && (
                     <Badge className="absolute top-4 right-4 bg-accent text-accent-foreground text-lg py-2 px-4">{course.badge}</Badge>

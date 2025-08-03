@@ -60,17 +60,19 @@ export default function TutorCard({ tutor }: TutorCardProps) {
       <CardContent className="p-6 flex-grow">
         <CardDescription className="text-center text-md mb-6">{tutor.bio}</CardDescription>
         
-        <div>
-            <h4 className="font-headline text-lg font-semibold mb-3 text-center">Specialties</h4>
-            <div className="flex flex-wrap justify-center gap-2">
-                {tutor.specialties.map(specialty => (
-                    <Badge key={specialty} variant="secondary" className="text-md py-1 px-3">
-                        <CheckCircle className="w-4 h-4 mr-1.5"/>
-                        {specialty}
-                    </Badge>
-                ))}
+        {tutor.specialties && tutor.specialties.length > 0 && (
+            <div>
+                <h4 className="font-headline text-lg font-semibold mb-3 text-center">Specialties</h4>
+                <div className="flex flex-wrap justify-center gap-2">
+                    {tutor.specialties.map(specialty => (
+                        <Badge key={specialty} variant="secondary" className="text-md py-1 px-3">
+                            <CheckCircle className="w-4 h-4 mr-1.5"/>
+                            {specialty}
+                        </Badge>
+                    ))}
+                </div>
             </div>
-        </div>
+        )}
 
       </CardContent>
       <CardFooter className="p-6 pt-0">
