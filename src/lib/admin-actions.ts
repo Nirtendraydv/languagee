@@ -13,9 +13,9 @@ const adminApp = (): App => {
         return getApp();
     }
 
-    // Check if the service account credentials are provided in the environment variable.
-    // This is how you authenticate for local development.
-    const serviceAccountString = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    // Check if the service account credentials are provided as a JSON string
+    // in the environment variable. This is for local development.
+    const serviceAccountString = process.env.SERVICE_ACCOUNT;
     if (serviceAccountString) {
         try {
             const serviceAccount = JSON.parse(serviceAccountString);
@@ -24,7 +24,7 @@ const adminApp = (): App => {
                 credential: cert(serviceAccount),
             });
         } catch (e) {
-            console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS. Please ensure it's a valid JSON string.", e);
+            console.error("Failed to parse SERVICE_ACCOUNT. Please ensure it's a valid JSON string.", e);
             // If parsing fails, we throw an error because local development will not work without it.
             throw new Error("Invalid service account credentials.");
         }
