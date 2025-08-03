@@ -59,10 +59,10 @@ export default function Home() {
                 <div className="mx-auto bg-primary/10 rounded-full p-4 w-20 h-20 flex items-center justify-center">
                   <Globe className="w-10 h-10 text-primary" />
                 </div>
-                <CardTitle className="font-headline text-2xl mt-4">2. Choose a Tutor</CardTitle>
+                <CardTitle className="font-headline text-2xl mt-4">2. Schedule a Class</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Browse our certified tutors and book a free trial lesson that fits your schedule.</p>
+                <p>Meet our tutors and book a lesson that fits your schedule.</p>
               </CardContent>
             </Card>
             <Card className="text-center p-6 border-2 border-transparent hover:border-primary transition-all duration-300 transform hover:-translate-y-2">
