@@ -12,9 +12,20 @@ const adminApp = (): App => {
     if (getApps().length > 0) {
         return getApp();
     }
+    
+    // Check for GOOGLE_APPLICATION_CREDENTIALS for local dev
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      console.log('Initializing with GOOGLE_APPLICATION_CREDENTIALS');
+      return initializeApp({
+        credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+      });
+    }
+
+    // Check for explicit SERVICE_ACCOUNT env var
     const serviceAccountString = process.env.SERVICE_ACCOUNT;
     if (serviceAccountString) {
         try {
+            console.log('Initializing with SERVICE_ACCOUNT env var.');
             const serviceAccount = JSON.parse(serviceAccountString);
             return initializeApp({
                 credential: cert(serviceAccount),
@@ -24,12 +35,14 @@ const adminApp = (): App => {
             throw new Error("Invalid service account credentials.");
         }
     }
+    
+    console.log('Initializing with Application Default Credentials');
+    // Fallback for deployed environments
     return initializeApp();
 };
 
-// This function is no longer the primary way to get users for the admin panel.
-// We will query the 'users' collection in Firestore instead.
-export async function listAllAuthUsers(): Promise<{uid: string, email: string}[]> {
+
+export async function listAllAuthUsers(): Promise<{uid: string, email: string | undefined}[]> {
   try {
     const auth = getAdminAuth(adminApp());
     const userRecords: UserRecord[] = [];
@@ -43,11 +56,13 @@ export async function listAllAuthUsers(): Promise<{uid: string, email: string}[]
     
     return userRecords.map(user => ({
         uid: user.uid,
-        email: user.email || 'No email'
+        email: user.email
     }));
 
   } catch (error) {
     console.error('Error listing users:', error);
+    // Re-throw the error with a more specific message that includes the likely solution.
+    // This helps the front-end identify the issue and display a helpful message.
     throw new Error("Could not list users. Ensure the service account has 'Firebase Authentication Admin' role.");
   }
 }

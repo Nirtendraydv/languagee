@@ -12,6 +12,9 @@ import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { USERS_PLACEHOLDER } from '@/lib/constants';
 import { listAllAuthUsers } from '@/lib/admin-actions';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Terminal } from 'lucide-react';
+import Link from 'next/link';
 
 type User = {
     uid: string;
@@ -32,10 +35,12 @@ type UserWithCourses = User & {
 export default function UsersPage() {
   const [users, setUsers] = useState<UserWithCourses[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [permissionError, setPermissionError] = useState(false);
   const { toast } = useToast();
 
   const fetchData = async () => {
       setIsLoading(true);
+      setPermissionError(false);
       try {
           // 1. Fetch all users from Firebase Auth
           const authUsers = await listAllAuthUsers();
@@ -71,8 +76,8 @@ export default function UsersPage() {
 
       } catch (error: any) {
           console.error("Error fetching data:", error);
-          if (error.message.includes("insufficient permissions")) {
-            toast({ variant: "destructive", title: "Permission Error", description: "The service account needs 'Firebase Authentication Admin' role to list users. See INSTRUCTIONS.md." });
+          if (error.message.includes("insufficient permissions") || error.message.includes("Firebase Authentication Admin")) {
+            setPermissionError(true);
           } else {
             toast({ variant: "destructive", title: "Error", description: "Failed to fetch user or course data." });
           }
@@ -87,11 +92,13 @@ export default function UsersPage() {
 
     // Set up a listener on the courses collection to refetch data if enrollments change
     const unsubscribe = onSnapshot(collection(db, "courses"), (snapshot) => {
-        fetchData(); 
+        if (!permissionError) {
+          fetchData();
+        }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [permissionError]);
 
   return (
     <div className="p-8">
@@ -112,6 +119,15 @@ export default function UsersPage() {
             <div className="flex justify-center items-center h-40">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
+          ) : permissionError ? (
+            <Alert variant="destructive" className="mt-4">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Permission Error</AlertTitle>
+              <AlertDescription>
+                The service account used by the application does not have the required permissions to list users from Firebase Authentication. 
+                Please follow the steps in the `INSTRUCTIONS.md` file in your project root to grant the **Firebase Authentication Admin** role.
+              </AlertDescription>
+            </Alert>
           ) : (
             <Table>
               <TableHeader>
