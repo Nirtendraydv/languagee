@@ -3,21 +3,28 @@
 
 import { initializeApp, getApps, getApp, App, cert } from "firebase-admin/app";
 import { getAuth as getAdminAuth, UserRecord } from "firebase-admin/auth";
-import { getServiceAccount } from "firebase-admin/app";
 
 const adminApp = (): App => {
+    // If the app is already initialized, return the existing instance.
     if (getApps().length > 0) {
         return getApp();
     }
     
-    // Check for GOOGLE_APPLICATION_CREDENTIALS for local development
+    // Check if the service account credentials are available in environment variables.
+    // This is the standard way to provide credentials for local development.
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-        return initializeApp({
-            credential: cert(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)),
-        });
+        try {
+            const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+            return initializeApp({
+                credential: cert(serviceAccount),
+            });
+        } catch (e) {
+            console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS:", e);
+            // Fallthrough to default initialization
+        }
     }
 
-    // Use default credentials for App Hosting
+    // Use default credentials provided by the App Hosting environment when deployed.
     return initializeApp();
 }
 
