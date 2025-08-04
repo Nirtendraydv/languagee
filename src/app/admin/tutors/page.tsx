@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw, X, Plus } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Edit, Trash2, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,12 +31,12 @@ type Tutor = {
 };
 
 // Use a separate type for the form state to handle specialties as a string
-type TutorFormData = Omit<Tutor, 'specialties'> & {
+type TutorFormData = Omit<Tutor, 'specialties' | 'id'> & {
+  id?: string;
   specialties: string;
 };
 
 const defaultTutor: TutorFormData = {
-    id: '',
     name: '',
     country: '',
     experience: 0,
@@ -102,21 +102,22 @@ export default function AdminTutorsPage() {
     e.preventDefault();
     if (!currentTutor) return;
 
-    // Convert the specialties string back to an array for Firestore
-    const specialtiesArray = currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean);
+    // Convert the specialties string back to an array for Firestore, and ensure it's always a string before splitting
+    const specialtiesArray = typeof currentTutor.specialties === 'string' 
+        ? currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
     
     const tutorDataToSave = {
       ...currentTutor,
       specialties: specialtiesArray,
     };
     
-    // Remove the ID from the data we save
     const { id, ...saveData } = tutorDataToSave;
 
     try {
         if (id) {
             const tutorRef = doc(db, "tutors", id);
-            await updateDoc(tutorRef, saveData);
+            await updateDoc(tutorRef, saveData as any);
             toast({ title: "Success", description: "Tutor updated successfully." });
         } else {
             await addDoc(collection(db, "tutors"), saveData);
@@ -146,7 +147,8 @@ export default function AdminTutorsPage() {
   
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setCurrentTutor(prev => prev ? { ...prev, [name]: value } : null);
+    const isNumberField = ['experience', 'rating'].includes(name);
+    setCurrentTutor(prev => prev ? { ...prev, [name]: isNumberField ? Number(value) : value } : null);
   };
 
   return (
@@ -294,5 +296,4 @@ export default function AdminTutorsPage() {
       </Card>
     </div>
   );
-
-    
+}
