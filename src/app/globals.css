@@ -12,19 +12,19 @@ h1, h2, h3, h4, h5, h6 {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 210 20% 98%; /* Light Blue-Gray */
     --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
+    --card: 210 20% 98%; /* Match background */
     --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
+    --popover: 210 20% 98%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 207 90% 54%;
+    --primary: 207 90% 54%; /* Soft Blue */
     --primary-foreground: 210 20% 98%;
     --secondary: 215 28% 95%;
     --secondary-foreground: 220 14.3% 31.4%;
     --muted: 220 13% 91%;
     --muted-foreground: 220 8.9% 46.1%;
-    --accent: 36 95% 58%;
+    --accent: 36 95% 58%; /* Vibrant Orange */
     --accent-foreground: 48 96% 97%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;

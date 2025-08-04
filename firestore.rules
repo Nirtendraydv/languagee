@@ -1,52 +1,44 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if the user is the admin
+    // Helper function to check for admin role
     function isAdmin() {
       return request.auth != null && request.auth.token.email == 'nirtendraydv@gmail.com';
     }
 
-    // Admins have full access to everything.
-    // This rule is checked first. If a user is an admin, they are granted access
-    // and other rules are not evaluated for them.
-    match /{path=**} {
+    // Admins can read/write all data
+    match /{document=**} {
       allow read, write: if isAdmin();
     }
-    
-    // Publicly readable collections
+
+    // Public read access for courses and tutors
     match /courses/{courseId} {
       allow read: if true;
-      // Write access is handled by the admin rule above.
-      allow write: if false; 
     }
-
     match /tutors/{tutorId} {
       allow read: if true;
-      allow write: if false;
     }
-    
-    match /settings/{docId} {
+
+    // Settings are only readable by public, writable only by admin (covered by admin rule)
+    match /settings/{settingId} {
         allow read: if true;
-        allow write: if false;
     }
 
-    // Secured collections
+    // Inquiries can only be created by anyone, but not read, updated or deleted
     match /inquiries/{inquiryId} {
-      // Only admins can read inquiries, anyone can create them.
-      allow read: if false;
-      allow create: if true;
-      allow update, delete: if false;
+        allow create: if true;
     }
 
+    // Course requests can only be created by authenticated users
     match /courseRequests/{requestId} {
-        allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
     }
     
+    // Users can only manage their own documents
     match /users/{userId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

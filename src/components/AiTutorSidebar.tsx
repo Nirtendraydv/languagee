@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { MessageSquare, Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getAiTutorResponse } from '@/ai/flows/ai-tutor-assistant';
 
@@ -73,7 +73,7 @@ export function AiTutorSidebar() {
             className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90"
             size="icon"
           >
-            <MessageSquare className="h-8 w-8" />
+            <Bot className="h-8 w-8" />
             <span className="sr-only">Ask a Question</span>
           </Button>
         </SheetTrigger>
