@@ -67,6 +67,11 @@ export default function UsersPage() {
             });
             
             setUsers(usersWithCourses);
+            setIsLoading(false);
+          }, (error) => {
+             console.error("Error fetching courses snapshot:", error);
+             toast({ variant: "destructive", title: "Error", description: "Failed to fetch course data for users." });
+             setIsLoading(false);
           });
           
           // Detach listener when component unmounts
@@ -79,7 +84,6 @@ export default function UsersPage() {
           } else {
              toast({ variant: "destructive", title: "Error", description: error.message || "An unexpected error occurred while fetching user or course data." });
           }
-      } finally {
           setIsLoading(false);
       }
   }, [toast]);
@@ -159,3 +163,5 @@ export default function UsersPage() {
     </div>
   );
 }
+
+    

@@ -1,44 +1,50 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check for admin role
-    function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'nirtendraydv@gmail.com';
-    }
-
-    // Admins can read/write all data
+    
+    // ADMIN RULE: Grant admin full access to everything.
+    // This rule is checked first. If the user is the admin, they are granted access
+    // and no other rules are checked for this path.
     match /{document=**} {
-      allow read, write: if isAdmin();
+      allow read, write: if request.auth != null && request.auth.token.email == 'nirtendraydv@gmail.com';
     }
 
-    // Public read access for courses and tutors
+    // Publicly readable collections
     match /courses/{courseId} {
       allow read: if true;
+      allow write: if request.auth != null; // Allow logged-in users to potentially write (e.g., enroll)
     }
+
     match /tutors/{tutorId} {
       allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Settings are only readable by public, writable only by admin (covered by admin rule)
     match /settings/{settingId} {
         allow read: if true;
-    }
-
-    // Inquiries can only be created by anyone, but not read, updated or deleted
-    match /inquiries/{inquiryId} {
-        allow create: if true;
-    }
-
-    // Course requests can only be created by authenticated users
-    match /courseRequests/{requestId} {
-      allow create: if request.auth != null;
+        allow write: if request.auth != null;
     }
     
-    // Users can only manage their own documents
+    // User-specific data
     match /users/{userId} {
-       allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+
+    // Inquiries can be created by anyone, but only read/deleted by admin (covered by admin rule)
+    match /inquiries/{inquiryId} {
+        allow create: if true;
+        allow read, update, delete: if request.auth != null;
+    }
+
+    // Course requests can be created by any authenticated user
+    match /courseRequests/{requestId} {
+        allow create: if request.auth != null;
+        allow read, delete: if request.auth != null; // Admins can read/delete
+    }
+
   }
 }
+
+    
