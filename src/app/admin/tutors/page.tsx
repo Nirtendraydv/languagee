@@ -81,25 +81,24 @@ export default function AdminTutorsPage() {
     e.preventDefault();
     if (!currentTutor || !currentTutor.name) return;
 
-    try {
-      let specialtiesArray: string[] = [];
-      if (typeof currentTutor.specialties === 'string') {
+    let specialtiesArray: string[] = [];
+    if (typeof currentTutor.specialties === 'string') {
         specialtiesArray = currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean);
-      } else if (Array.isArray(currentTutor.specialties)) {
+    } else if (Array.isArray(currentTutor.specialties)) {
         specialtiesArray = currentTutor.specialties;
-      }
+    }
       
-      const tutorDataToSave = {
-        name: currentTutor.name || '',
-        country: currentTutor.country || '',
-        experience: Number(currentTutor.experience) || 0,
-        rating: Number(currentTutor.rating) || 0,
-        accent: currentTutor.accent || '',
-        avatar: currentTutor.avatar || 'https://placehold.co/150x150.png',
-        dataAiHint: currentTutor.dataAiHint || 'person portrait',
-        bio: currentTutor.bio || '',
-        specialties: specialtiesArray
-      };
+    const tutorDataToSave = {
+      name: currentTutor.name || '',
+      country: currentTutor.country || '',
+      experience: Number(currentTutor.experience) || 0,
+      rating: Number(currentTutor.rating) || 0,
+      accent: currentTutor.accent || '',
+      avatar: currentTutor.avatar || 'https://placehold.co/150x150.png',
+      dataAiHint: currentTutor.dataAiHint || 'person portrait',
+      bio: currentTutor.bio || '',
+      specialties: specialtiesArray
+    };
 
 
       if (currentTutor.id) {
@@ -113,6 +112,8 @@ export default function AdminTutorsPage() {
       await fetchTutors();
       setIsDialogOpen(false);
       setCurrentTutor(null);
+    try {
+
     } catch (error) {
       console.error("Error saving tutor:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to save tutor." });
@@ -284,3 +285,5 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+
+    
