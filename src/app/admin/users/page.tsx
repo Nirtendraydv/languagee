@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { listAllAuthUsers } from '@/lib/admin-actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+export const runtime = 'nodejs';
+
 type User = {
     uid: string;
     email: string;
@@ -54,7 +56,7 @@ export default function UsersPage() {
           const firestoreUsersSnapshot = await getDocs(collection(db, "users"));
           const firestoreUsers = firestoreUsersSnapshot.docs.map(doc => doc.data() as User);
 
-          const usersWithCourses = authUsers.map(authUser => {
+          const usersWithCourses = (authUsers || []).map(authUser => {
               if (!authUser) return null;
               const firestoreUser = firestoreUsers.find(u => u.uid === authUser.uid);
               const enrolledCourses = courses.filter(course => course.enrolledUserIds?.includes(authUser.uid));
