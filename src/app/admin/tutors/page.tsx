@@ -81,25 +81,25 @@ export default function AdminTutorsPage() {
     e.preventDefault();
     if (!currentTutor || !currentTutor.name) return;
 
-    let specialtiesArray: string[] = [];
-    if (typeof currentTutor.specialties === 'string') {
-        specialtiesArray = currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean);
-    } else if (Array.isArray(currentTutor.specialties)) {
-        specialtiesArray = currentTutor.specialties;
-    }
-      
-    const tutorDataToSave = {
-      name: currentTutor.name || '',
-      country: currentTutor.country || '',
-      experience: Number(currentTutor.experience) || 0,
-      rating: Number(currentTutor.rating) || 0,
-      accent: currentTutor.accent || '',
-      avatar: currentTutor.avatar || 'https://placehold.co/150x150.png',
-      dataAiHint: currentTutor.dataAiHint || 'person portrait',
-      bio: currentTutor.bio || '',
-      specialties: specialtiesArray
-    };
-
+    try {
+      let specialtiesArray: string[] = [];
+      if (typeof currentTutor.specialties === 'string') {
+          specialtiesArray = currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(currentTutor.specialties)) {
+          specialtiesArray = currentTutor.specialties;
+      }
+        
+      const tutorDataToSave = {
+        name: currentTutor.name || '',
+        country: currentTutor.country || '',
+        experience: Number(currentTutor.experience) || 0,
+        rating: Number(currentTutor.rating) || 0,
+        accent: currentTutor.accent || '',
+        avatar: currentTutor.avatar || 'https://placehold.co/150x150.png',
+        dataAiHint: currentTutor.dataAiHint || 'person portrait',
+        bio: currentTutor.bio || '',
+        specialties: specialtiesArray
+      };
 
       if (currentTutor.id) {
         const tutorRef = doc(db, "tutors", currentTutor.id);
@@ -112,8 +112,6 @@ export default function AdminTutorsPage() {
       await fetchTutors();
       setIsDialogOpen(false);
       setCurrentTutor(null);
-    try {
-
     } catch (error) {
       console.error("Error saving tutor:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to save tutor." });
@@ -211,7 +209,7 @@ export default function AdminTutorsPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="specialties">Specialties (comma-separated)</Label>
-                            <Input id="specialties" name="specialties" value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : currentTutor.specialties || ''} onChange={handleFormChange} required />
+                            <Input id="specialties" name="specialties" value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : ''} onChange={handleFormChange} required />
                         </div>
                         <Button type="submit">Save Tutor</Button>
                     </form>
@@ -285,5 +283,3 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
-
-    
