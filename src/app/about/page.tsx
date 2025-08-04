@@ -44,7 +44,7 @@ export default function AboutPage() {
         setTutors(tutorsList);
       } catch (error) {
         console.error("Error fetching tutors:", error);
-        setError("There was an error loading our tutors. Please try again later.");
+        setError("There was an error loading  tutors. Please try again later.");
       } finally {
         setIsLoading(false);
       }
