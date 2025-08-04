@@ -82,6 +82,13 @@ export default function AdminTutorsPage() {
     if (!currentTutor || !currentTutor.name) return;
 
     try {
+      let specialtiesArray: string[] = [];
+      if (Array.isArray(currentTutor.specialties)) {
+        specialtiesArray = currentTutor.specialties;
+      } else if (typeof currentTutor.specialties === 'string') {
+        specialtiesArray = currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      
       const tutorDataToSave = {
         name: currentTutor.name || '',
         country: currentTutor.country || '',
@@ -91,9 +98,7 @@ export default function AdminTutorsPage() {
         avatar: currentTutor.avatar || 'https://placehold.co/150x150.png',
         dataAiHint: currentTutor.dataAiHint || 'person portrait',
         bio: currentTutor.bio || '',
-        specialties: Array.isArray(currentTutor.specialties) 
-            ? currentTutor.specialties 
-            : (currentTutor.specialties as string || '').split(',').map(s => s.trim()).filter(Boolean)
+        specialties: specialtiesArray
       };
 
 
@@ -205,7 +210,7 @@ export default function AdminTutorsPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="specialties">Specialties (comma-separated)</Label>
-                            <Input id="specialties" name="specialties" value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : currentTutor.specialties || ''} onChange={handleFormChange} required />
+                            <Input id="specialties" name="specialties" value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : (currentTutor.specialties as string) || ''} onChange={handleFormChange} required />
                         </div>
                         <Button type="submit">Save Tutor</Button>
                     </form>
@@ -279,3 +284,5 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+
+    
