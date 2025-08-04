@@ -53,7 +53,7 @@ export default function UsersPage() {
           // Ensure authUsers is not undefined before proceeding
           const validAuthUsers = authUsers || [];
           
-          const coursesSnapshot = await onSnapshot(collection(db, "courses"), (snapshot) => {
+          const coursesSnapshot = onSnapshot(collection(db, "courses"), (snapshot) => {
             const courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             
             const usersWithCourses = validAuthUsers.map(authUser => {
@@ -104,7 +104,7 @@ export default function UsersPage() {
               <AlertTitle>Permission Error</AlertTitle>
               <AlertDescription>
                 <p>{permissionError}</p>
-                <p className="mt-2">
+                <p className="mt-2 font-semibold">
                 This is a permissions issue in your Google Cloud project, not a bug in the app. Please follow the steps in the `INSTRUCTIONS.md` file in your project root to grant the required IAM role to your service account.
                 </p>
               </AlertDescription>
@@ -159,4 +159,3 @@ export default function UsersPage() {
     </div>
   );
 }
-
