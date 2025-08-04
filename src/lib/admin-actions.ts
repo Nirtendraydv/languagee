@@ -8,41 +8,47 @@ import { getFirestore } from "firebase-admin/firestore";
 // This function initializes and returns the Firebase Admin App instance.
 // It uses a singleton pattern to ensure it's initialized only once.
 const adminApp = (): App => {
-    // If the app is already initialized, return the existing instance.
+    // If an app is already initialized, return it to prevent re-initialization.
     if (getApps().length > 0) {
         return getApp();
     }
 
-    // Try initializing with Base64 encoded service account first.
+    // Attempt to initialize with Base64 encoded service account from environment variables.
+    // This is the recommended approach for secure environments like Firebase App Hosting.
     if (process.env.GOOGLE_SERVICE_ACCOUNT_BASE64) {
         try {
             const decodedServiceAccount = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8');
             const serviceAccountJson = JSON.parse(decodedServiceAccount);
-            console.log("Initializing Firebase Admin with Base64 service account.");
-            return initializeApp({
-                credential: cert(serviceAccountJson),
-            });
+            console.log("Attempting to initialize Firebase Admin with Base64 service account...");
+            return initializeApp({ credential: cert(serviceAccountJson) });
         } catch (e) {
-            console.error("Failed to parse GOOGLE_SERVICE_ACCOUNT_BASE64. Ensure it's a valid Base64 encoded JSON. Falling back...", e);
+            console.error("Failed to initialize with GOOGLE_SERVICE_ACCOUNT_BASE64. Ensure it's a valid Base64 encoded JSON. Falling back...", e);
         }
     }
     
-    // If Base64 fails or is not present, try with file path (e.g., App Hosting default or local dev).
+    // If Base64 fails or isn't present, try initializing with a file path.
+    // This is common for local development or environments where a file path is set.
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       try {
-        console.log("Initializing Firebase Admin with GOOGLE_APPLICATION_CREDENTIALS file.");
-        return initializeApp({
-            credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
-        });
+        console.log("Attempting to initialize Firebase Admin with GOOGLE_APPLICATION_CREDENTIALS file...");
+        return initializeApp({ credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS) });
       } catch (e) {
-         console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS. Falling back...", e);
+         console.error("Failed to initialize with GOOGLE_APPLICATION_CREDENTIALS file. Falling back...", e);
       }
     }
     
     // As a last resort, initialize with Application Default Credentials (ADC).
-    // This is useful for many Google Cloud environments.
-    console.log("Initializing Firebase Admin with Application Default Credentials.");
-    return initializeApp();
+    // This is useful for many Google Cloud environments (like Cloud Run, GCE) where the
+    // runtime is already authenticated.
+    console.log("Attempting to initialize Firebase Admin with Application Default Credentials...");
+    try {
+        return initializeApp();
+    } catch (e) {
+        console.error("FATAL: Could not initialize Firebase Admin SDK. All authentication methods failed.", e);
+        // If all methods fail, we throw an error to prevent the app from running
+        // in a broken state where backend services would inevitably fail.
+        throw new Error("Could not initialize Firebase Admin SDK. Please check your service account credentials.");
+    }
 };
 
 
@@ -72,6 +78,9 @@ export async function listAllAuthUsers(): Promise<{ users: {uid: string, email: 
         const errorMessage = "Could not list users. The service account does not have the 'Firebase Authentication Admin' role. Please follow the setup instructions.";
         return { users: [], error: errorMessage };
     }
+     if (error.message.includes("Could not initialize Firebase Admin SDK")) {
+        return { users: [], error: "The server is misconfigured. Please check the service account credentials." };
+    }
     // For other errors, return a generic message
     return { users: [], error: error.message || "An unknown error occurred while listing users." };
   }
@@ -81,10 +90,10 @@ export async function listAllAuthUsers(): Promise<{ users: {uid: string, email: 
 export async function syncUserToFirestore(uid: string, email: string | null) {
     if (!uid || !email) return;
 
-    const db = getFirestore(adminApp());
-    const userRef = db.collection('users').doc(uid);
-
     try {
+        const db = getFirestore(adminApp());
+        const userRef = db.collection('users').doc(uid);
+
         await userRef.set({
             uid,
             email,

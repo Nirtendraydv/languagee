@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2, RefreshCw, Terminal } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { collection, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { listAllAuthUsers } from '@/lib/admin-actions';
@@ -49,34 +49,35 @@ export default function UsersPage() {
             setIsLoading(false);
             return;
           }
-          
-          const coursesSnapshot = await getDocs(collection(db, "courses"));
-          const courses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
 
-          const firestoreUsersSnapshot = await getDocs(collection(db, "users"));
-          const firestoreUsers = firestoreUsersSnapshot.docs.map(doc => doc.data() as User);
-
-          const usersWithCourses = (authUsers || []).map(authUser => {
-              if (!authUser) return null;
-              const firestoreUser = firestoreUsers.find(u => u.uid === authUser.uid);
-              const enrolledCourses = courses.filter(course => course.enrolledUserIds?.includes(authUser.uid));
-              
-              return { 
-                  uid: authUser.uid,
-                  email: authUser.email || 'N/A', 
-                  createdAt: firestoreUser?.createdAt,
-                  enrolledCourses 
-              };
-          }).filter((user): user is UserWithCourses => user !== null);
+          // Ensure authUsers is not undefined before proceeding
+          const validAuthUsers = authUsers || [];
           
-          setUsers(usersWithCourses);
+          const coursesSnapshot = await onSnapshot(collection(db, "courses"), (snapshot) => {
+            const courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            
+            const usersWithCourses = validAuthUsers.map(authUser => {
+                const enrolledCourses = courses.filter(course => course.enrolledUserIds?.includes(authUser.uid));
+                
+                return { 
+                    uid: authUser.uid,
+                    email: authUser.email || 'N/A', 
+                    enrolledCourses 
+                };
+            });
+            
+            setUsers(usersWithCourses);
+          });
+          
+          // Detach listener when component unmounts
+          return () => coursesSnapshot();
 
       } catch (error: any) {
           console.error("Error fetching data:", error);
-          if (error.message.includes("permission-denied")) {
+          if (error.message.includes("permission-denied") || error.message.includes("Firebase Authentication Admin")) {
              setPermissionError("Could not list users. The service account does not have the 'Firebase Authentication Admin' role. Please follow the setup instructions.");
           } else {
-             toast({ variant: "destructive", title: "Error", description: "An unexpected error occurred while fetching user or course data." });
+             toast({ variant: "destructive", title: "Error", description: error.message || "An unexpected error occurred while fetching user or course data." });
           }
       } finally {
           setIsLoading(false);
@@ -86,15 +87,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchData();
-
-    const unsubscribe = onSnapshot(collection(db, "courses"), () => {
-        if (!permissionError) {
-          fetchData();
-        }
-    });
-
-    return () => unsubscribe();
-  }, [fetchData, permissionError]);
+  }, [fetchData]);
 
   return (
     <div className="p-8">
@@ -166,3 +159,4 @@ export default function UsersPage() {
     </div>
   );
 }
+
