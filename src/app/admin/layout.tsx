@@ -21,10 +21,8 @@ import {
   User,
   LogOut,
   BookOpen,
-  Users as UsersIcon,
   Settings,
   Bell,
-  Bot,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -101,14 +99,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <SidebarMenuButton>
                   <BookOpen />
                   <span>Courses</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Link href="/admin/tutors" passHref>
-                <SidebarMenuButton>
-                  <UsersIcon />
-                  <span>Tutors</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
