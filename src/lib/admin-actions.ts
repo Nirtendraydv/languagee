@@ -5,38 +5,43 @@ import { initializeApp, getApps, getApp, App, cert } from "firebase-admin/app";
 import { getAuth as getAdminAuth, UserRecord } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
+// This function initializes and returns the Firebase Admin App instance.
+// It uses a singleton pattern to ensure it's initialized only once.
 const adminApp = (): App => {
+    // If the app is already initialized, return the existing instance.
     if (getApps().length > 0) {
         return getApp();
     }
 
-    // Recommended: Use a Base64 encoded service account from an environment variable
+    // Try initializing with Base64 encoded service account first.
     if (process.env.GOOGLE_SERVICE_ACCOUNT_BASE64) {
         try {
             const decodedServiceAccount = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8');
             const serviceAccountJson = JSON.parse(decodedServiceAccount);
+            console.log("Initializing Firebase Admin with Base64 service account.");
             return initializeApp({
                 credential: cert(serviceAccountJson),
             });
         } catch (e) {
-            console.error("Failed to parse GOOGLE_SERVICE_ACCOUNT_BASE64. Make sure it's a valid Base64 encoded JSON.", e);
+            console.error("Failed to parse GOOGLE_SERVICE_ACCOUNT_BASE64. Ensure it's a valid Base64 encoded JSON. Falling back...", e);
         }
     }
     
-    // Fallback for environments that use a file path (like local dev with GOOGLE_APPLICATION_CREDENTIALS set)
-    // This is also how App Hosting works by default.
+    // If Base64 fails or is not present, try with file path (e.g., App Hosting default or local dev).
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       try {
+        console.log("Initializing Firebase Admin with GOOGLE_APPLICATION_CREDENTIALS file.");
         return initializeApp({
             credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
         });
       } catch (e) {
-         console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS.", e);
+         console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS. Falling back...", e);
       }
     }
     
-    // This will use the Application Default Credentials (ADC) when deployed if no other config is found.
-    // Useful for some Google Cloud environments.
+    // As a last resort, initialize with Application Default Credentials (ADC).
+    // This is useful for many Google Cloud environments.
+    console.log("Initializing Firebase Admin with Application Default Credentials.");
     return initializeApp();
 };
 
