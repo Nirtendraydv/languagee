@@ -12,7 +12,7 @@ import { LayoutDashboard } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
-const ADMIN_EMAIL = 'admin@example.com';
+const ADMIN_EMAIL = 'nirtendraydv@gmail.com';
 
 export default function AdminLoginPage() {
   const router = useRouter();

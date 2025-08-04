@@ -31,7 +31,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const ADMIN_EMAIL = 'admin@example.com';
+const ADMIN_EMAIL = 'nirtendraydv@gmail.com';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();

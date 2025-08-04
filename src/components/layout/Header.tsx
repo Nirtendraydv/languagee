@@ -12,7 +12,7 @@ import { auth, db } from "@/lib/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { FacebookIcon, InstagramIcon, TwitterIcon } from "../SocialIcons";
 
-const ADMIN_EMAIL = 'admin@example.com';
+const ADMIN_EMAIL = 'nirtendraydv@gmail.com';
 
 type Settings = {
     siteName: string;
