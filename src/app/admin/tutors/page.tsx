@@ -83,6 +83,8 @@ export default function AdminTutorsPage() {
 
     try {
       let specialtiesArray: string[] = [];
+      // The form input for specialties will be a string, so we process it.
+      // If it's somehow already an array, we accept it.
       if (typeof currentTutor.specialties === 'string') {
         specialtiesArray = currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean);
       } else if (Array.isArray(currentTutor.specialties)) {
@@ -212,7 +214,7 @@ export default function AdminTutorsPage() {
                             <Input 
                                 id="specialties" 
                                 name="specialties" 
-                                value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : currentTutor.specialties} 
+                                value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : ''} 
                                 onChange={handleFormChange} 
                                 required 
                             />
