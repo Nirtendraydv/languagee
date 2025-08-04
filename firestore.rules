@@ -1,40 +1,52 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // Helper function to check if the user is the admin
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email == 'admin@example.com';
+      return request.auth != null && request.auth.token.email == 'nirtendraydv@gmail.com';
     }
 
-    // Global admin rule: Admins can read/write anything.
+    // Admins have full access to everything.
+    // This rule is checked first. If a user is an admin, they are granted access
+    // and other rules are not evaluated for them.
     match /{path=**} {
       allow read, write: if isAdmin();
     }
     
-    // Public access for courses
+    // Publicly readable collections
     match /courses/{courseId} {
       allow read: if true;
-    }
-    
-    // Public access for tutors
-    match /tutors/{tutorId} {
-      allow read: if true;
+      // Write access is handled by the admin rule above.
+      allow write: if false; 
     }
 
-    // Users can create inquiries and course requests
+    match /tutors/{tutorId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /settings/{docId} {
+        allow read: if true;
+        allow write: if false;
+    }
+
+    // Secured collections
     match /inquiries/{inquiryId} {
-      allow create: if request.auth != null;
+      // Only admins can read inquiries, anyone can create them.
+      allow read: if false;
+      allow create: if true;
+      allow update, delete: if false;
     }
 
     match /courseRequests/{requestId} {
-        allow create: if request.auth != null;
+        allow read, write: if request.auth != null;
     }
-
-    // Public read for homepage settings
-    match /settings/homepageConfig {
-      allow read: if true;
+    
+    match /users/{userId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

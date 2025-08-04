@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+*.firebase-adminsdk-*.json
+*.key.json
+
 # next.js
 /.next/
 /out/
