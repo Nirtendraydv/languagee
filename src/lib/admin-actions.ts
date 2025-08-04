@@ -9,11 +9,24 @@ const adminApp = (): App => {
     if (getApps().length > 0) {
         return getApp();
     }
+
+    // Recommended: Use a Base64 encoded service account from an environment variable
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_BASE64) {
+        try {
+            const decodedServiceAccount = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8');
+            const serviceAccountJson = JSON.parse(decodedServiceAccount);
+            return initializeApp({
+                credential: cert(serviceAccountJson),
+            });
+        } catch (e) {
+            console.error("Failed to parse GOOGLE_SERVICE_ACCOUNT_BASE64. Make sure it's a valid Base64 encoded JSON.", e);
+        }
+    }
     
-    // This environment variable is set in App Hosting but can be used for local dev
+    // Fallback for environments that use a file path (like local dev with GOOGLE_APPLICATION_CREDENTIALS set)
+    // This is also how App Hosting works by default.
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       try {
-        // We can pass the string directly to cert()
         return initializeApp({
             credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
         });
@@ -22,18 +35,8 @@ const adminApp = (): App => {
       }
     }
     
-    // This is the fallback for local development if the above is not set.
-    // It uses the service account file in the root directory.
-    try {
-        const serviceAccount = require('../../language-2b5a4-firebase-adminsdk-fbsvc-2d3deb6e72.json');
-        return initializeApp({
-            credential: cert(serviceAccount),
-        });
-    } catch (e) {
-        console.error("Could not load local service account. Defaulting to application default credentials.", e);
-    }
-    
-    // This will use the Application Default Credentials (ADC) when deployed.
+    // This will use the Application Default Credentials (ADC) when deployed if no other config is found.
+    // Useful for some Google Cloud environments.
     return initializeApp();
 };
 

@@ -1,39 +1,78 @@
 
-# How to Fix the "Missing or insufficient permissions" Error
+# How to Set Up Your Firebase Credentials
 
-You are seeing this error because the service account used by your application does not have the required permissions to manage Firebase Authentication users. The Firebase Admin SDK needs the **"Firebase Authentication Admin"** role to list users.
+This guide will help you correctly configure the necessary credentials for both the client-side Firebase SDK and the server-side Firebase Admin SDK.
 
-Since this AI assistant cannot modify your Google Cloud project's permissions, you will need to do this manually. It's a quick process.
+## 1. Client-Side Firebase Config (for the Browser)
 
-## Steps to Grant Permissions
+Your web application needs a Firebase configuration object to connect to your Firebase project from the user's browser.
+
+**Steps:**
+
+1.  Go to the **Firebase Console**: [https://console.firebase.google.com/](https://console.firebase.google.com/)
+2.  Select your project (or create a new one).
+3.  Click the **Settings gear** icon in the top-left corner and select **Project settings**.
+4.  In the "Your apps" card, select your web app (or create one if you haven't).
+5.  Under **Firebase SDK snippet**, select the **Config** option.
+6.  You will see an object with keys like `apiKey`, `authDomain`, etc. Copy these values.
+7.  Paste these values into your `.env` file, uncommenting the lines.
+
+**Example `.env` file:**
+```
+NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-auth-domain"
+NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
+# ... and so on for the other keys
+```
+
+## 2. Server-Side Admin SDK Config (for the Backend)
+
+The backend needs a service account to perform administrative actions, like listing all users. The recommended and most secure way to provide this is through a Base64 encoded environment variable.
+
+### Step 2a: Grant Required Permissions
+
+The service account used by your application needs the **"Firebase Authentication Admin"** role to manage users.
 
 1.  **Find your Service Account:**
     *   Go to the Google Cloud Console: [https://console.cloud.google.com/](https://console.cloud.google.com/)
-    *   Make sure you have selected the correct Google Cloud project that corresponds to your Firebase project.
+    *   Select the correct Google Cloud project.
     *   In the navigation menu (`☰`), go to **IAM & Admin** > **Service Accounts**.
-    *   You are looking for the service account that your App Hosting backend uses. It usually looks like this: `firebase-app-hosting-backend@[YOUR-PROJECT-ID].iam.gserviceaccount.com`.
+    *   Find the service account your backend will use. For App Hosting, it's typically `firebase-app-hosting-backend@[YOUR-PROJECT-ID].iam.gserviceaccount.com`. For other environments, you might use the default App Engine service account or create a new one.
 
-2.  **Grant the Required Role:**
-    *   Go to the **IAM** page in the Google Cloud Console (`☰` > **IAM & Admin** > **IAM**).
-    *   Click the **"+ GRANT ACCESS"** button at the top of the page.
-    *   In the "New principals" field, paste the service account email you found in the previous step.
+2.  **Grant the Role:**
+    *   Go to the **IAM** page (`☰` > **IAM & Admin** > **IAM**).
+    *   Click **"+ GRANT ACCESS"**.
+    *   In the "New principals" field, paste the service account email.
     *   In the "Assign roles" section, search for and select the **`Firebase Authentication Admin`** role.
     *   Click **"Save"**.
 
-## For Local Development
-
-If you are running this application on your local machine, you will need to authenticate using a service account key file.
+### Step 2b: Generate and Encode the Service Account Key
 
 1.  **Generate a Key:**
-    *   On the **Service Accounts** page in the Google Cloud Console, find the same App Hosting service account.
-    *   Click on the service account email.
+    *   On the **Service Accounts** page, click on the service account email.
     *   Go to the **"KEYS"** tab.
     *   Click **"ADD KEY"** > **"Create new key"**.
-    *   Choose **"JSON"** as the key type and click **"CREATE"**. A JSON file will be downloaded to your computer.
+    *   Choose **"JSON"** as the key type and click **"CREATE"**. A JSON file will be downloaded.
 
-2.  **Set the Environment Variable:**
-    *   You need to tell the Admin SDK where to find this key file. You do this by setting an environment variable named `GOOGLE_APPLICATION_CREDENTIALS`.
-    *   The value should be the **absolute path** to the JSON key file you downloaded.
-    *   You can set this in your `.env` file (if you are using one) or directly in your terminal before running the app.
+2.  **Encode the Key to Base64:**
+    *   You need to convert the entire content of the downloaded JSON file into a single-line Base64 string.
+    *   **On macOS/Linux:** Open a terminal and run the following command, replacing `path/to/your/keyfile.json` with the actual path to the file you downloaded:
+        ```bash
+        cat path/to/your/keyfile.json | base64 | tr -d '\n'
+        ```
+    *   **On Windows (PowerShell):**
+        ```powershell
+        [Convert]::ToBase64String([IO.File]::ReadAllBytes("path\to\your\keyfile.json"))
+        ```
+    *   Copy the long string of text that is output by the command.
 
-After you have granted the permissions in the Google Cloud Console, the "Missing or insufficient permissions" error should be resolved.
+3.  **Set the Environment Variable:**
+    *   Open your `.env` file.
+    *   Paste the copied Base64 string as the value for `GOOGLE_SERVICE_ACCOUNT_BASE64`.
+
+**Example `.env` file:**
+```
+GOOGLE_SERVICE_ACCOUNT_BASE64="ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAg...etc"
+```
+
+Your application is now configured to use the more secure Base64-encoded service account key.
