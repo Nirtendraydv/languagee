@@ -84,9 +84,9 @@ export default function AdminTutorsPage() {
     try {
       let specialtiesArray: string[] = [];
       if (typeof currentTutor.specialties === 'string') {
-          specialtiesArray = currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean);
+        specialtiesArray = currentTutor.specialties.split(',').map(s => s.trim()).filter(Boolean);
       } else if (Array.isArray(currentTutor.specialties)) {
-          specialtiesArray = currentTutor.specialties;
+        specialtiesArray = currentTutor.specialties;
       }
         
       const tutorDataToSave = {
@@ -209,7 +209,13 @@ export default function AdminTutorsPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="specialties">Specialties (comma-separated)</Label>
-                            <Input id="specialties" name="specialties" value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : ''} onChange={handleFormChange} required />
+                            <Input 
+                                id="specialties" 
+                                name="specialties" 
+                                value={Array.isArray(currentTutor.specialties) ? currentTutor.specialties.join(', ') : currentTutor.specialties} 
+                                onChange={handleFormChange} 
+                                required 
+                            />
                         </div>
                         <Button type="submit">Save Tutor</Button>
                     </form>
@@ -283,3 +289,5 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+
+    

@@ -82,21 +82,25 @@ export const TESTIMONIALS = [
     name: 'Alex Johnson',
     quote: 'LingoSphere completely transformed my confidence in speaking English. The tutors are fantastic and the lessons are so engaging!',
     avatar: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=100&auto=format&fit=crop',
+    dataAiHint: 'man smiling'
   },
   {
     name: 'Maria Garcia',
     quote: 'I needed to improve my Business English for work, and this platform was a game-changer. I highly recommend it.',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=100&auto=format&fit=crop',
+    dataAiHint: 'woman portrait'
   },
   {
     name: 'Kenji Tanaka',
     quote: 'The interactive lessons make learning fun, not a chore. I look forward to my classes every week.',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    dataAiHint: 'man smiling'
   },
   {
     name: 'Fatima Al-Sayed',
     quote: 'Thanks to LingoSphere, I passed my exams with a great score. The prep course was thorough and very helpful.',
     avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=100&auto=format&fit=crop',
+    dataAiHint: 'woman happy'
   },
 ];
 
@@ -160,3 +164,5 @@ export const AI_TUTOR_COURSES_CONTEXT = [
     description: 'Deep dive into complex grammar topics to write and speak with precision.',
   },
 ];
+
+    
